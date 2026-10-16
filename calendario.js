@@ -1,471 +1,199 @@
-// Versão otimizada do calendário StudyMind.
-const calendario =
-    document.getElementById("calendario");
 
+"use strict";
 
-let mesAtual =
-    new Date().getMonth();
+// ================================================
+// ELEMENTOS DO HTML
+// ================================================
 
+const calendarGrid = document.getElementById("calendar-grid");
+const monthTitle = document.getElementById("month-title");
+const prevMonthButton = document.getElementById("prev-month");
+const nextMonthButton = document.getElementById("next-month");
+const todayButton = document.getElementById("today-button");
 
-let anoAtual =
-    new Date().getFullYear();
+// ================================================
+// ESTADO DO CALENDÁRIO
+// ================================================
 
+const hoje = new Date();
+hoje.setHours(0, 0, 0, 0);
 
+let mesAtual = hoje.getMonth();
+let anoAtual = hoje.getFullYear();
 
-// ==================================================
-// CRIAR CALENDÁRIO
-// ==================================================
+const nomesMeses = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro"
+];
 
-function criarCalendario() {
+// ================================================
+// DATAS CONFIRMADAS
+// ================================================
 
-    if (!calendario) return;
-
-
-    calendario.innerHTML = "";
-
-
-    // ==================================================
-    // DIAS CONFIRMADOS
-    // ==================================================
-
-    let diasConfirmados = [];
-
-
-    const dados =
-        localStorage.getItem(
-            "diasConfirmados"
-        );
-
-
-    if (dados) {
-        try {
-            const parsed = JSON.parse(dados);
-            // Set deixa a verificação de cada dia rápida, mesmo com muitos registros.
-            diasConfirmados = new Set(Array.isArray(parsed) ? parsed : []);
-        } catch {
-            diasConfirmados = new Set();
-        }
-    } else {
-        diasConfirmados = new Set();
-    }
-
-
-
-    // ==================================================
-    // DATA DE HOJE
-    // ==================================================
-
-    const dataHoje =
-        new Date();
-
-
-    dataHoje.setHours(
-        0,
-        0,
-        0,
-        0
+function carregarDiasConfirmados() {
+  try {
+    const dados = JSON.parse(
+      localStorage.getItem("diasConfirmados") || "[]"
     );
 
-
-
-    // ==================================================
-    // PRIMEIRO DIA DO MÊS
-    // ==================================================
-
-    const primeiroDia =
-        new Date(
-            anoAtual,
-            mesAtual,
-            1
-        );
-
-
-    // JavaScript usa domingo = 0.
-    // Aqui transformamos para segunda = 0.
-
-    let primeiroDiaSemana =
-        primeiroDia.getDay();
-
-
-    primeiroDiaSemana =
-        (primeiroDiaSemana + 6) % 7;
-
-
-
-    // ==================================================
-    // QUANTIDADE DE DIAS
-    // ==================================================
-
-    const quantidadeDias =
-        new Date(
-            anoAtual,
-            mesAtual + 1,
-            0
-        ).getDate();
-
-
-
-    // ==================================================
-    // NOMES DOS MESES
-    // ==================================================
-
-    const nomesMeses = [
-        "Janeiro",
-        "Fevereiro",
-        "Março",
-        "Abril",
-        "Maio",
-        "Junho",
-        "Julho",
-        "Agosto",
-        "Setembro",
-        "Outubro",
-        "Novembro",
-        "Dezembro"
-    ];
-
-
-
-    // ==================================================
-    // CABEÇALHO
-    // ==================================================
-
-    const topo =
-        document.createElement("div");
-
-    topo.className =
-        "calendario-topo";
-
-
-    const botaoAnterior =
-        document.createElement("button");
-
-    botaoAnterior.className =
-        "botao-mes";
-
-    botaoAnterior.textContent =
-        "‹";
-
-    botaoAnterior.type =
-        "button";
-
-
-    const titulo =
-        document.createElement("h3");
-
-    titulo.textContent =
-        `${nomesMeses[mesAtual]} ${anoAtual}`;
-
-
-    const botaoProximo =
-        document.createElement("button");
-
-    botaoProximo.className =
-        "botao-mes";
-
-    botaoProximo.textContent =
-        "›";
-
-    botaoProximo.type =
-        "button";
-
-
-    topo.appendChild(
-        botaoAnterior
-    );
-
-    topo.appendChild(
-        titulo
-    );
-
-    topo.appendChild(
-        botaoProximo
-    );
-
-    calendario.appendChild(
-        topo
-    );
-
-
-
-    // ==================================================
-    // DIAS DA SEMANA
-    // ==================================================
-
-    const semana =
-        document.createElement("div");
-
-    semana.className =
-        "dias-semana";
-
-
-    const nomesDias = [
-        "SEG",
-        "TER",
-        "QUA",
-        "QUI",
-        "SEX",
-        "SÁB",
-        "DOM"
-    ];
-
-
-    nomesDias.forEach(nome => {
-
-        const elemento =
-            document.createElement("div");
-
-        elemento.className =
-            "dia-semana";
-
-        elemento.textContent =
-            nome;
-
-        semana.appendChild(
-            elemento
-        );
-
-    });
-
-
-    calendario.appendChild(
-        semana
-    );
-
-
-
-    // ==================================================
-    // DIAS DO CALENDÁRIO
-    // ==================================================
-
-    const dias = document.createElement("div");
-    dias.className = "dias-calendario";
-    // Monta os dias fora do DOM e insere tudo de uma vez.
-    const fragmentoDias = document.createDocumentFragment();
-
-
-    // ==================================================
-    // ESPAÇOS ANTES DO PRIMEIRO DIA
-    // ==================================================
-
-    for (
-        let i = 0;
-        i < primeiroDiaSemana;
-        i++
-    ) {
-
-        const vazio =
-            document.createElement("div");
-
-        vazio.className =
-            "dia vazio";
-
-        fragmentoDias.appendChild(vazio);
-
-    }
-
-
-
-    // ==================================================
-    // CRIAR CADA DIA
-    // ==================================================
-
-    for (
-        let numero = 1;
-        numero <= quantidadeDias;
-        numero++
-    ) {
-
-        const elemento =
-            document.createElement("div");
-
-        elemento.className =
-            "dia";
-
-        elemento.textContent =
-            numero;
-
-
-        const dataDia =
-            new Date(
-                anoAtual,
-                mesAtual,
-                numero
-            );
-
-
-        dataDia.setHours(
-            0,
-            0,
-            0,
-            0
-        );
-
-
-
-        // ==================================================
-        // DATA NO FORMATO YYYY-MM-DD
-        // ==================================================
-
-        const ano =
-            dataDia.getFullYear();
-
-        const mes =
-            String(
-                dataDia.getMonth() + 1
-            ).padStart(2, "0");
-
-        const dia =
-            String(
-                dataDia.getDate()
-            ).padStart(2, "0");
-
-
-        const dataTexto =
-            `${ano}-${mes}-${dia}`;
-
-
-
-        // ==================================================
-        // É HOJE?
-        // ==================================================
-
-        if (
-            dataDia.getTime() ===
-            dataHoje.getTime()
-        ) {
-
-            elemento.classList.add(
-                "hoje"
-            );
-
-        }
-
-
-
-        // ==================================================
-        // É FUTURO?
-        // ==================================================
-
-        if (
-            dataDia > dataHoje
-        ) {
-
-            elemento.classList.add(
-                "futuro"
-            );
-
-        }
-
-
-
-        // ==================================================
-        // FOI CONFIRMADO?
-        // ==================================================
-
-        if (
-            diasConfirmados.has(dataTexto)
-        ) {
-
-            elemento.classList.add(
-                "completo"
-            );
-
-
-            // Criar estrela pequena
-
-            const estrela =
-                document.createElement("span");
-
-
-            estrela.className =
-                "estrela-dia";
-
-
-            estrela.textContent =
-                "⭐";
-
-
-            elemento.appendChild(
-                estrela
-            );
-
-        }
-
-
-
-        fragmentoDias.appendChild(elemento);
-
-    }
-
-
-    dias.appendChild(fragmentoDias);
-    calendario.appendChild(dias);
-
-
-
-    // ==================================================
-    // BOTÃO ANTERIOR
-    // ==================================================
-
-    botaoAnterior.addEventListener(
-        "click",
-        () => {
-
-            mesAtual--;
-
-
-            if (
-                mesAtual < 0
-            ) {
-
-                mesAtual = 11;
-
-                anoAtual--;
-
-            }
-
-
-            criarCalendario();
-
-        }
-    );
-
-
-
-    // ==================================================
-    // BOTÃO PRÓXIMO
-    // ==================================================
-
-    botaoProximo.addEventListener(
-        "click",
-        () => {
-
-            mesAtual++;
-
-
-            if (
-                mesAtual > 11
-            ) {
-
-                mesAtual = 0;
-
-                anoAtual++;
-
-            }
-
-
-            criarCalendario();
-
-        }
-    );
-
+    return new Set(Array.isArray(dados) ? dados : []);
+  } catch (erro) {
+    console.warn("Não foi possível carregar os dias confirmados:", erro);
+    return new Set();
+  }
 }
 
+// ================================================
+// CRIAR CALENDÁRIO VISUAL
+// ================================================
 
+function criarCalendario() {
+  if (!calendarGrid || !monthTitle) {
+    console.error(
+      "Calendário não encontrado. Confira os IDs calendar-grid e month-title no HTML."
+    );
+    return;
+  }
 
-// ==================================================
-// INICIAR
-// ==================================================
+  calendarGrid.replaceChildren();
+
+  // Cabeçalho do mês.
+  monthTitle.textContent = `${nomesMeses[mesAtual]} ${anoAtual}`;
+
+  const diasConfirmados = carregarDiasConfirmados();
+
+  // Primeiro dia e quantidade de dias do mês.
+  const primeiroDia = new Date(anoAtual, mesAtual, 1);
+  const deslocamento = primeiroDia.getDay();
+
+  const quantidadeDias = new Date(
+    anoAtual,
+    mesAtual + 1,
+    0
+  ).getDate();
+
+  const fragmento = document.createDocumentFragment();
+
+  // Espaços vazios antes do primeiro dia.
+  // A ordem segue o HTML: domingo até sábado.
+  for (let i = 0; i < deslocamento; i++) {
+    const vazio = document.createElement("div");
+
+    vazio.className = "calendar-day empty";
+    vazio.setAttribute("aria-hidden", "true");
+
+    fragmento.appendChild(vazio);
+  }
+
+  // Criar cada dia do mês.
+  for (let numero = 1; numero <= quantidadeDias; numero++) {
+    const data = new Date(anoAtual, mesAtual, numero);
+
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const dia = String(data.getDate()).padStart(2, "0");
+
+    const dataTexto = `${ano}-${mes}-${dia}`;
+
+    const botao = document.createElement("button");
+
+    botao.type = "button";
+    botao.className = "calendar-day";
+    botao.dataset.date = dataTexto;
+    botao.setAttribute(
+      "aria-label",
+      `${numero} de ${nomesMeses[mesAtual]} de ${anoAtual}`
+    );
+
+    const numeroDia = document.createElement("span");
+    numeroDia.className = "day-number";
+    numeroDia.textContent = numero;
+
+    botao.appendChild(numeroDia);
+
+    // Destacar hoje.
+    if (data.getTime() === hoje.getTime()) {
+      botao.classList.add("today");
+      botao.setAttribute("aria-current", "date");
+    }
+
+    // Destacar dias confirmados.
+    if (diasConfirmados.has(dataTexto)) {
+      botao.classList.add("complete");
+
+      const estrela = document.createElement("span");
+      estrela.className = "estrela-dia";
+      estrela.textContent = "⭐";
+      estrela.setAttribute("aria-hidden", "true");
+
+      botao.appendChild(estrela);
+    }
+
+    fragmento.appendChild(botao);
+  }
+
+  // Inserir todos os dias de uma vez.
+  calendarGrid.appendChild(fragmento);
+}
+
+// ================================================
+// NAVEGAÇÃO ENTRE MESES
+// ================================================
+
+function mudarMes(diferenca) {
+  const novaData = new Date(
+    anoAtual,
+    mesAtual + diferenca,
+    1
+  );
+
+  mesAtual = novaData.getMonth();
+  anoAtual = novaData.getFullYear();
+
+  criarCalendario();
+}
+
+prevMonthButton?.addEventListener("click", () => {
+  mudarMes(-1);
+});
+
+nextMonthButton?.addEventListener("click", () => {
+  mudarMes(1);
+});
+
+// ================================================
+// VOLTAR PARA O MÊS ATUAL
+// ================================================
+
+todayButton?.addEventListener("click", () => {
+  mesAtual = hoje.getMonth();
+  anoAtual = hoje.getFullYear();
+
+  criarCalendario();
+});
+
+// ================================================
+// ATUALIZAÇÃO QUANDO OUTRA ABA ALTERAR OS DADOS
+// ================================================
+
+window.addEventListener("storage", (evento) => {
+  if (evento.key === "diasConfirmados") {
+    criarCalendario();
+  }
+});
+
+// ================================================
+// INICIALIZAÇÃO
+// ================================================
 
 criarCalendario();
