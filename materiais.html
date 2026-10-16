@@ -1,0 +1,279 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Materiais | StudyMind</title>
+
+    <link rel="stylesheet" href="materiais.css">
+    <script src="materiais.js" defer></script>
+</head>
+<body>
+    <div class="app-shell">
+
+        <!-- BARRA LATERAL -->
+        <aside class="sidebar">
+            <a href="index.html" class="brand">
+                <span class="brand-mark">S</span>
+                <span>StudyMind</span>
+            </a>
+
+            <p class="sidebar-label">ESPAÇO DE ESTUDOS</p>
+
+            <nav class="nav">
+                <a href="index.html">
+                    <span>⌂</span> Início
+                </a>
+
+                <a href="index.html#tutor">
+                    <span>✦</span> Tutor IA
+                </a>
+
+                <a href="exercicios.html">
+                    <span>▤</span> Exercícios
+                </a>
+
+                <a href="materiais.html" class="active">
+                    <span>▧</span> Materiais
+                </a>
+
+                <a href="calendario.html">
+                    <span>◷</span> Calendário
+                </a>
+            </nav>
+
+            <div class="sidebar-note">
+                <span class="note-icon">✧</span>
+                <strong>Seu conhecimento, organizado.</strong>
+                <p>
+                    Guarde resumos, anotações e arquivos
+                    em um só lugar.
+                </p>
+            </div>
+
+            <p class="sidebar-footer">
+                StudyMind · Área de estudos
+            </p>
+        </aside>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="main-content">
+
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">SUA BIBLIOTECA PESSOAL</p>
+                    <h1>Materiais</h1>
+                    <p class="subtitle">
+                        Reúna o que você aprende e transforme
+                        conteúdo em conhecimento.
+                    </p>
+                </div>
+
+                <button
+                    id="new-material-button"
+                    class="button button-primary"
+                    type="button"
+                >
+                    ＋ Novo material
+                </button>
+            </header>
+
+            <!-- ESTATÍSTICAS -->
+            <section
+                class="stats-grid"
+                aria-label="Estatísticas dos materiais"
+            >
+                <article class="stat-card">
+                    <span class="stat-icon purple">▧</span>
+                    <div>
+                        <span class="stat-label">Materiais salvos</span>
+                        <strong id="stat-total">0</strong>
+                    </div>
+                </article>
+
+                <article class="stat-card">
+                    <span class="stat-icon blue">▤</span>
+                    <div>
+                        <span class="stat-label">Resumos</span>
+                        <strong id="stat-summaries">0</strong>
+                    </div>
+                </article>
+
+                <article class="stat-card">
+                    <span class="stat-icon pink">✎</span>
+                    <div>
+                        <span class="stat-label">Anotações</span>
+                        <strong id="stat-notes">0</strong>
+                    </div>
+                </article>
+
+                <article class="stat-card">
+                    <span class="stat-icon green">↥</span>
+                    <div>
+                        <span class="stat-label">Arquivos</span>
+                        <strong id="stat-files">0</strong>
+                    </div>
+                </article>
+            </section>
+
+            <!-- FORMULÁRIO DE CRIAÇÃO -->
+            <section class="content-panel" id="editor-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">ADICIONAR À BIBLIOTECA</p>
+                        <h2 id="form-heading">Criar material</h2>
+                    </div>
+
+                    <button
+                        id="cancel-edit"
+                        class="icon-button hidden"
+                        type="button"
+                        aria-label="Cancelar edição"
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                <form id="material-form">
+                    <input id="material-id" type="hidden">
+
+                    <div class="form-grid">
+
+                        <label class="field field-wide">
+                            Título
+                            <input
+                                id="material-title"
+                                name="title"
+                                type="text"
+                                maxlength="120"
+                                placeholder="Ex.: Resumo de funções matemáticas"
+                                required
+                            >
+                        </label>
+
+                        <label class="field">
+                            Tipo
+                            <select id="material-type" name="type">
+                                <option value="resumo">Resumo</option>
+                                <option value="anotacao">Anotação</option>
+                                <option value="arquivo">Arquivo</option>
+                            </select>
+                        </label>
+
+                        <label class="field">
+                            Matéria (opcional)
+                            <input
+                                id="material-subject"
+                                name="subject"
+                                type="text"
+                                maxlength="80"
+                                placeholder="Ex.: Matemática"
+                            >
+                        </label>
+
+                        <label class="field field-wide">
+                            Conteúdo ou descrição
+                            <textarea
+                                id="material-content"
+                                name="content"
+                                rows="5"
+                                placeholder="Escreva seu resumo, suas anotações ou uma descrição do arquivo..."
+                            ></textarea>
+                        </label>
+
+                        <label class="field field-wide">
+                            Anexar arquivo (opcional)
+                            <input
+                                id="material-file"
+                                name="file"
+                                type="file"
+                                accept=".pdf,.txt,.md,.csv,.png,.jpg,.jpeg,.webp,.doc,.docx,.odt,.ppt,.pptx,.xls,.xlsx"
+                            >
+                            <small>
+                                O arquivo será armazenado neste navegador.
+                                Limite recomendado: 15 MB por arquivo.
+                            </small>
+                        </label>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <span
+                            id="form-status"
+                            class="form-status"
+                            role="status"
+                            aria-live="polite"
+                        ></span>
+
+                        <button
+                            id="save-button"
+                            class="button button-primary"
+                            type="submit"
+                        >
+                            Salvar material
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- BIBLIOTECA -->
+            <section class="library-section">
+                <div class="library-heading">
+                    <div>
+                        <p class="eyebrow">SEU ACERVO</p>
+                        <h2>Biblioteca</h2>
+                    </div>
+
+                    <div class="filters">
+                        <label class="search-box">
+                            <span>⌕</span>
+                            <input
+                                id="search-materials"
+                                type="search"
+                                placeholder="Buscar materiais..."
+                                aria-label="Buscar materiais"
+                            >
+                        </label>
+
+                        <select id="filter-type" aria-label="Filtrar por tipo">
+                            <option value="todos">Todos os tipos</option>
+                            <option value="resumo">Resumos</option>
+                            <option value="anotacao">Anotações</option>
+                            <option value="arquivo">Arquivos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- O JavaScript colocará os cartões aqui -->
+                <div id="materials-list" class="materials-grid"></div>
+
+                <!-- Estado vazio -->
+                <div id="empty-state" class="empty-state">
+                    <div class="empty-icon">▧</div>
+
+                    <h3>Sua biblioteca está vazia</h3>
+
+                    <p>
+                        Adicione seu primeiro resumo, anotação
+                        ou arquivo para começar.
+                    </p>
+
+                    <button
+                        id="empty-new-button"
+                        class="button button-secondary"
+                        type="button"
+                    >
+                        Criar primeiro material
+                    </button>
+                </div>
+            </section>
+
+            <footer class="page-footer">
+                Seus materiais são armazenados localmente neste navegador.
+            </footer>
+
+        </main>
+    </div>
+</body>
+</html>
