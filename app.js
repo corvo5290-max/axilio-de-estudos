@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tutorStatus = document.getElementById("tutor-status-message");
 
     // Para testar localmente. Depois da hospedagem, trocaremos pela URL HTTPS do backend.
-    const API_BASE_URL = "http://127.0.0.1:8000";
+    const API_BASE_URL = "https://axilio-de-estudos.onrender.com";
     const conversation = [];
 
     function addChatMessage(role, content) {
