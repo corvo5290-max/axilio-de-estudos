@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#15121f">
+  <title>Calendário | StudyMind</title>
+  <link rel="stylesheet" href="calendario.css">
+  <script src="calendario.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">Study<span>Mind</span></a>
+    <a class="back-link" href="index.html">← Voltar ao StudyMind</a>
+  </header>
+
+  <main class="container">
+    <section class="welcome">
+      <p class="eyebrow">ORGANIZAÇÃO PESSOAL</p>
+      <h1>Meu calendário <span>✦</span></h1>
+      <p>Organize seus estudos, provas e lembretes em um só lugar.</p>
+    </section>
+
+    <section class="calendar-layout">
+      <div class="panel calendar-panel">
+        <div class="month-header">
+          <button id="prev-month" class="icon-button" aria-label="Mês anterior">‹</button>
+          <h2 id="month-title">Carregando...</h2>
+          <button id="next-month" class="icon-button" aria-label="Próximo mês">›</button>
+        </div>
+
+        <button id="today-button" class="today-button">Ir para hoje</button>
+
+        <div class="weekdays" aria-hidden="true">
+          <span>Dom</span>
+          <span>Seg</span>
+          <span>Ter</span>
+          <span>Qua</span>
+          <span>Qui</span>
+          <span>Sex</span>
+          <span>Sáb</span>
+        </div>
+
+        <div id="calendar-grid" class="calendar-grid" aria-label="Dias do mês"></div>
+
+        <div class="legend">
+          <span><i class="dot study"></i> Estudo</span>
+          <span><i class="dot reminder"></i> Lembrete</span>
+          <span><i class="dot exam"></i> Prova/trabalho</span>
+        </div>
+      </div>
+
+      <div class="right-column">
+        <section class="panel form-panel">
+          <h2 id="form-title">Adicionar evento</h2>
+          <p class="muted">Selecionado: <strong id="selected-date-label"></strong></p>
+
+          <form id="event-form">
+            <label for="event-title">Nome do evento</label>
+            <input
+              id="event-title"
+              name="title"
+              type="text"
+              maxlength="100"
+              placeholder="Ex.: Estudar matemática"
+              required
+            >
+
+            <div class="form-row">
+              <div>
+                <label for="event-date">Data</label>
+                <input id="event-date" name="date" type="date" required>
+              </div>
+              <div>
+                <label for="event-time">Horário</label>
+                <input id="event-time" name="time" type="time">
+              </div>
+            </div>
+
+            <label for="event-type">Categoria</label>
+            <select id="event-type" name="type">
+              <option value="study">Estudo</option>
+              <option value="reminder">Lembrete</option>
+              <option value="exam">Prova ou trabalho</option>
+            </select>
+
+            <label for="event-description">Descrição (opcional)</label>
+            <textarea
+              id="event-description"
+              name="description"
+              rows="3"
+              maxlength="500"
+              placeholder="O que você precisa lembrar?"
+            ></textarea>
+
+            <button id="save-event" class="primary-button" type="submit">
+              + Adicionar evento
+            </button>
+            <button id="cancel-edit" class="secondary-button hidden" type="button">
+              Cancelar edição
+            </button>
+          </form>
+        </section>
+
+        <section class="panel agenda-panel">
+          <div class="agenda-heading">
+            <div>
+              <h2>Minha agenda</h2>
+              <p id="agenda-date" class="muted"></p>
+            </div>
+            <span id="event-count" class="count-badge">0</span>
+          </div>
+
+          <label class="filter-label" for="event-filter">Mostrar</label>
+          <select id="event-filter">
+            <option value="all">Todos os eventos do dia</option>
+            <option value="pending">Pendentes</option>
+            <option value="completed">Concluídos</option>
+          </select>
+
+          <div id="event-list" class="event-list"></div>
+        </section>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      Seus eventos ficam salvos neste navegador. ✦
+    </p>
+  </main>
+</body>
+</html>
