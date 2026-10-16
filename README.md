@@ -1,47 +1,124 @@
-# StudyMind — Tutor IA
+# 📚 StudyMind
 
-Versão inicial do Tutor IA integrada ao layout existente do StudyMind.
+**Seu espaço para aprender, praticar e organizar os estudos.**
 
-## 1. Preparar o backend no Linux Mint
+O StudyMind é uma plataforma de estudos desenvolvida para ajudar estudantes a aprender de forma mais organizada, praticar conteúdos escolares e acompanhar sua rotina de aprendizagem.
 
-Abra o terminal dentro da pasta `backend`:
+🌐 **Acesse o projeto:** [StudyMind](https://corvo5290-max.github.io/axilio-de-estudos/)
+
+---
+
+## ✨ Funcionalidades
+
+### 🤖 Tutor com IA
+- Faça perguntas e tire dúvidas sobre os conteúdos estudados.
+- Utilize o tutor como apoio durante a aprendizagem.
+
+### 📝 Exercícios e simulados
+- Pratique diferentes matérias escolares.
+- Escolha a etapa escolar, o ano, a matéria e a dificuldade.
+- Receba explicações sobre as respostas.
+- Realize simulados com questões de diferentes disciplinas.
+- Consulte seu resultado e confira o gabarito comentado.
+
+### 📅 Calendário de estudos
+- Organize suas tarefas e atividades escolares.
+- Registre seus compromissos de estudo.
+- Mantenha sua rotina organizada.
+
+### 📊 Acompanhamento
+- Consulte estatísticas das atividades realizadas.
+- Acompanhe seu desempenho nos exercícios e simulados.
+
+---
+
+## 📖 Matérias disponíveis
+
+- Matemática
+- Língua Portuguesa
+- História
+- Geografia
+- Ciências
+- Inglês
+
+O conteúdo é organizado de acordo com os anos escolares disponíveis na plataforma.
+
+---
+
+## 🛠️ Tecnologias
+
+O projeto utiliza:
+
+- **HTML5** — estrutura das páginas.
+- **CSS3** — estilos e interface.
+- **JavaScript** — interatividade e funcionalidades do frontend.
+- **Python** — desenvolvimento do backend.
+- **API de tutor** — comunicação entre o frontend e o serviço de apoio com IA.
+- **GitHub Pages** — publicação do frontend.
+- **Render** — hospedagem do backend.
+
+---
+
+## 🚀 Acessar o projeto
+
+Você pode utilizar a versão publicada diretamente pelo navegador:
+
+**[Abrir o StudyMind](https://corvo5290-max.github.io/axilio-de-estudos/)**
+
+Não é necessário instalar o projeto para utilizar essa versão.
+
+---
+
+## 💻 Executar localmente
+
+### 1. Baixe o projeto
+
+Clone o repositório:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-nano .env
+git clone https://github.com/corvo5290-max/axilio-de-estudos.git
 ```
 
-Coloque sua chave Groq depois de `GROQ_API_KEY=` no arquivo `.env`. Não compartilhe nem envie esse arquivo ao GitHub.
-
-## 2. Iniciar o backend
-
-Ainda na pasta `backend`, com o ambiente virtual ativado:
+Entre na pasta:
 
 ```bash
-uvicorn main:app --reload --port 8000
+cd axilio-de-estudos
 ```
 
-Teste `http://127.0.0.1:8000/health`; deve responder com status online.
+### 2. Abra o frontend
 
-## 3. Abrir o frontend localmente
+Abra o arquivo `index.html` no navegador ou utilize um servidor local para servir os arquivos do projeto.
 
-Em outro terminal, volte à raiz do projeto (a pasta que contém `index.html`) e execute:
+### 3. Backend
 
-```bash
-python3 -m http.server 5500
+O endereço do backend utilizado pelo frontend é:
+
+```text
+https://axilio-de-estudos.onrender.com
 ```
 
-Abra `http://127.0.0.1:5500` e entre em Tutor IA. O JavaScript chama `http://127.0.0.1:8000` enquanto você testa localmente.
+Para executar o backend localmente, consulte os arquivos e as dependências presentes no repositório.
 
-## 4. Publicar
+---
 
-O GitHub Pages hospeda somente o frontend. O backend Python precisa ser hospedado separadamente. Antes de usar em público, configure `CORS_ORIGINS` com a origem exata do GitHub Pages e implemente limites de uso/autenticação para evitar abuso da API. Configure `GROQ_API_KEY` nas variáveis de ambiente do serviço de backend, nunca no frontend ou no repositório.
+## 🗺️ Objetivo do projeto
 
-## Segurança
+O StudyMind busca tornar os estudos mais acessíveis e organizados, reunindo ferramentas de prática, apoio ao aprendizado e planejamento em um único lugar.
 
-- Não commitar `backend/.env`.
-- Não colocar a chave no `app.js` ou no HTML.
-- CORS não é autenticação e não impede chamadas feitas fora do navegador.
+O projeto está em desenvolvimento e pode receber novas funcionalidades, melhorias na interface e novos conteúdos ao longo do tempo.
+
+---
+
+## 🔗 Links
+
+- **Site:** https://corvo5290-max.github.io/axilio-de-estudos/
+- **Repositório:** https://github.com/corvo5290-max/axilio-de-estudos
+- **Backend:** https://axilio-de-estudos.onrender.com
+
+---
+
+## 👨‍💻 Desenvolvimento
+
+Projeto independente desenvolvido com foco em educação, programação e aprendizado na prática.
+
+**StudyMind — aprenda no seu ritmo.** 📚
