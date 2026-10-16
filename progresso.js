@@ -7,25 +7,31 @@
 
     function carregarDados() {
         try {
-            const dados = JSON.parse(
-                localStorage.getItem(STORAGE_KEY)
-            );
+            const bruto = localStorage.getItem(STORAGE_KEY);
+
+            if (!bruto) {
+                return {
+                    answered: 0,
+                    correct: 0,
+                    history: [],
+                    examHistory: []
+                };
+            }
+
+            const dados = JSON.parse(bruto);
 
             return {
-                answered: Number(dados?.answered) || 0,
-                correct: Number(dados?.correct) || 0,
-                history: Array.isArray(dados?.history)
+                answered: Number(dados.answered) || 0,
+                correct: Number(dados.correct) || 0,
+                history: Array.isArray(dados.history)
                     ? dados.history
                     : [],
-                examHistory: Array.isArray(dados?.examHistory)
+                examHistory: Array.isArray(dados.examHistory)
                     ? dados.examHistory
                     : []
             };
         } catch (erro) {
-            console.error(
-                "Erro ao carregar o progresso:",
-                erro
-            );
+            console.error("Erro ao carregar progresso:", erro);
 
             return {
                 answered: 0,
@@ -36,7 +42,7 @@
         }
     }
 
-    function atualizarTexto(id, valor) {
+    function texto(id, valor) {
         const elemento = $(id);
 
         if (elemento) {
@@ -44,186 +50,186 @@
         }
     }
 
-    function criarElemento(tag, classe, texto) {
+    function criarElemento(tag, classe, conteudo) {
         const elemento = document.createElement(tag);
 
-        if (classe) {
-            elemento.className = classe;
-        }
+        if (classe) elemento.className = classe;
 
-        if (texto !== undefined) {
-            elemento.textContent = texto;
+        if (conteudo !== undefined) {
+            elemento.textContent = conteudo;
         }
 
         return elemento;
     }
 
-    function renderizarErros(historico) {
-        const container =
-            $("progress-mistakes") ||
-            $("progress-errors") ||
-            $("progress-history");
-
-        if (!container) return;
-
-        container.replaceChildren();
-
-        const erros = historico.filter(
-            (item) => item.correct === false
+    function obterErros(historico) {
+        return historico.filter(item =>
+            item.correct === false ||
+            item.correct === "false" ||
+            item.correct === 0
         );
-
-        if (erros.length === 0) {
-            container.appendChild(
-                criarElemento(
-                    "p",
-                    "empty-state",
-                    "Nenhuma questão errada registrada ainda. Continue praticando!"
-                )
-            );
-
-            return;
-        }
-
-        erros.slice(0, 10).forEach((erro) => {
-            const card = criarElemento("article", "mistake-card");
-
-            const materia = criarElemento(
-                "p",
-                "mistake-subject",
-                erro.subject || "Matéria não identificada"
-            );
-
-            const pergunta = criarElemento(
-                "h3",
-                "",
-                erro.question || "Questão sem enunciado"
-            );
-
-            const resposta = criarElemento(
-                "p",
-                "mistake-answer",
-                erro.selectedAnswer
-                    ? `Sua resposta: ${erro.selectedAnswer}`
-                    : "Resposta escolhida não registrada."
-            );
-
-            const gabarito = criarElemento(
-                "p",
-                "mistake-correct",
-                erro.correctAnswer
-                    ? `Resposta correta: ${erro.correctAnswer}`
-                    : "Gabarito não registrado no histórico."
-            );
-
-            const explicacao = criarElemento(
-                "p",
-                "mistake-explanation",
-                erro.explanation || ""
-            );
-
-            card.append(
-                materia,
-                pergunta,
-                resposta,
-                gabarito
-            );
-
-            if (erro.explanation) {
-                card.appendChild(explicacao);
-            }
-
-            container.appendChild(card);
-        });
     }
 
     function renderizarMaterias(historico) {
         const container = $("progress-subjects");
-
         if (!container) return;
 
         container.replaceChildren();
 
         const contagem = {};
 
-        historico.forEach((item) => {
-            if (item.correct === false) {
-                const materia = item.subject || "Outras";
-                contagem[materia] = (contagem[materia] || 0) + 1;
-            }
+        obterErros(historico).forEach(item => {
+            const materia = item.subject || "Outras matérias";
+            contagem[materia] = (contagem[materia] || 0) + 1;
         });
 
         const materias = Object.entries(contagem)
             .sort((a, b) => b[1] - a[1]);
 
-        if (materias.length === 0) {
+        if (!materias.length) {
             container.appendChild(
                 criarElemento(
                     "p",
-                    "empty-state",
-                    "Ainda não há erros registrados por matéria."
+                    "muted",
+                    "Nenhum erro registrado para revisar."
                 )
             );
-
             return;
         }
 
         materias.forEach(([materia, quantidade]) => {
             const linha = criarElemento("div", "subject-error");
-            const nome = criarElemento("span", "", materia);
-            const total = criarElemento(
-                "strong",
-                "",
-                `${quantidade} ${quantidade === 1 ? "erro" : "erros"}`
+
+            linha.append(
+                criarElemento("span", "", materia),
+                criarElemento(
+                    "strong",
+                    "",
+                    `${quantidade} ${quantidade === 1 ? "erro" : "erros"}`
+                )
             );
 
-            linha.append(nome, total);
             container.appendChild(linha);
+        });
+    }
+
+    function renderizarErros(historico) {
+        const container = $("progress-mistakes");
+        if (!container) return;
+
+        container.replaceChildren();
+
+        const erros = obterErros(historico);
+
+        if (!erros.length) {
+            container.appendChild(
+                criarElemento(
+                    "p",
+                    "muted",
+                    "Nenhuma questão errada registrada ainda."
+                )
+            );
+            return;
+        }
+
+        erros.slice(0, 10).forEach(item => {
+            const card = criarElemento("article", "mistake-card");
+
+            card.appendChild(
+                criarElemento(
+                    "p",
+                    "mistake-subject",
+                    item.subject || "Matéria não identificada"
+                )
+            );
+
+            card.appendChild(
+                criarElemento(
+                    "h3",
+                    "",
+                    item.question || "Questão sem enunciado"
+                )
+            );
+
+            if (item.selectedAnswer) {
+                card.appendChild(
+                    criarElemento(
+                        "p",
+                        "",
+                        `Sua resposta: ${item.selectedAnswer}`
+                    )
+                );
+            }
+
+            if (item.correctAnswer) {
+                card.appendChild(
+                    criarElemento(
+                        "p",
+                        "",
+                        `Resposta correta: ${item.correctAnswer}`
+                    )
+                );
+            }
+
+            if (item.explanation) {
+                card.appendChild(
+                    criarElemento(
+                        "p",
+                        "muted",
+                        item.explanation
+                    )
+                );
+            }
+
+            container.appendChild(card);
         });
     }
 
     function renderizarProvas(provas) {
         const container = $("progress-exams");
-
         if (!container) return;
 
         container.replaceChildren();
 
-        if (provas.length === 0) {
+        if (!provas.length) {
             container.appendChild(
                 criarElemento(
                     "p",
-                    "empty-state",
-                    "Nenhuma prova registrada ainda."
+                    "muted",
+                    "Você ainda não tem provas registradas."
                 )
             );
-
             return;
         }
 
-        provas.slice(0, 5).forEach((prova) => {
+        provas.slice(0, 5).forEach(prova => {
             const card = criarElemento("article", "exam-card");
 
-            const titulo = criarElemento(
-                "h3",
-                "",
-                prova.stage
-                    ? `Prova: ${prova.stage}`
-                    : "Prova realizada"
+            const data = prova.date
+                ? new Date(prova.date).toLocaleDateString("pt-BR")
+                : "Data não registrada";
+
+            card.append(
+                criarElemento(
+                    "h3",
+                    "",
+                    prova.stage
+                        ? `Prova: ${prova.stage}`
+                        : "Prova realizada"
+                ),
+                criarElemento(
+                    "p",
+                    "",
+                    `${prova.correct || 0} de ${prova.total || 0} acertos`
+                ),
+                criarElemento(
+                    "strong",
+                    "",
+                    `${Number(prova.pct) || 0}%`
+                ),
+                criarElemento("p", "muted", data)
             );
 
-            const resultado = criarElemento(
-                "p",
-                "",
-                `${Number(prova.correct) || 0} de ${Number(prova.total) || 0} acertos`
-            );
-
-            const porcentagem = criarElemento(
-                "strong",
-                "",
-                `${Number(prova.pct) || 0}%`
-            );
-
-            card.append(titulo, resultado, porcentagem);
             container.appendChild(card);
         });
     }
@@ -238,62 +244,61 @@
             ? Math.round((acertos / respondidas) * 100)
             : 0;
 
-        const erros = dados.history.filter(
-            (item) => item.correct === false
-        ).length;
+        const erros = obterErros(dados.history);
 
-        atualizarTexto(
-            "progress-answered",
-            respondidas
-        );
-
-        atualizarTexto(
-            "progress-accuracy",
-            `${porcentagem}%`
-        );
-
-        atualizarTexto(
+        texto("progress-answered", respondidas);
+        texto("progress-accuracy", `${porcentagem}%`);
+        texto(
             "progress-correct-count",
             `${acertos} ${acertos === 1 ? "acerto" : "acertos"}`
         );
+        texto("progress-wrong", erros.length);
 
-        atualizarTexto(
-            "progress-wrong",
-            erros
-        );
-
-        atualizarTexto(
-            "progress-errors-count",
-            erros
-        );
-
-        renderizarErros(dados.history);
         renderizarMaterias(dados.history);
+        renderizarErros(dados.history);
         renderizarProvas(dados.examHistory);
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    // Primeira atualização.
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            atualizarProgresso
+        );
+    } else {
         atualizarProgresso();
+    }
 
-        // Atualiza quando o usuário retorna à página.
-        window.addEventListener("pageshow", atualizarProgresso);
+    // Atualiza ao voltar para esta página.
+    window.addEventListener("pageshow", atualizarProgresso);
 
-        // Atualiza quando outra aba altera o localStorage.
-        window.addEventListener("storage", (evento) => {
-            if (evento.key === STORAGE_KEY) {
-                atualizarProgresso();
-            }
-        });
+    window.addEventListener("focus", atualizarProgresso);
 
-        // Atualiza ao navegar para a seção de progresso.
-        document.addEventListener("click", (evento) => {
-            const alvo = evento.target.closest(
-                '[href="#progresso"], [data-page="progresso"], [data-pagina="progresso"]'
-            );
-
-            if (alvo) {
-                atualizarProgresso();
-            }
-        });
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) atualizarProgresso();
     });
+
+    // Atualiza ao mudar de seção no StudyMind.
+    document.addEventListener("click", evento => {
+        if (!(evento.target instanceof Element)) return;
+
+        const link = evento.target.closest(
+            'a[href="#progresso"], a[href="#inicio"], ' +
+            '[data-page="progresso"], [data-pagina="progresso"]'
+        );
+
+        if (link) {
+            atualizarProgresso();
+        }
+    });
+
+    window.addEventListener("hashchange", atualizarProgresso);
+
+    // Atualiza quando outra aba modifica os dados.
+    window.addEventListener("storage", evento => {
+        if (evento.key === STORAGE_KEY || evento.key === null) {
+            atualizarProgresso();
+        }
+    });
+
 })();
