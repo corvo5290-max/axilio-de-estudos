@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101225">
+    <meta name="description" content="Acompanhe seus erros e acertos no StudyMind.">
+    <title>StudyMind | Meu progresso</title>
+    <link rel="stylesheet" href="progresso.css">
+    <script src="progresso.js" defer></script>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <a href="index.html#inicio" class="brand">
+            <span class="brand-icon">S✦</span>
+            <span>
+                <strong>StudyMind</strong>
+                <small>Seu espaço de aprendizagem</small>
+            </span>
+        </a>
+
+        <p class="menu-label">ESPAÇO DE ESTUDO</p>
+        <nav class="navigation" aria-label="Navegação principal">
+            <a href="index.html#inicio" class="nav-link">⌂ Visão geral</a>
+            <a href="index.html#tutor" class="nav-link">✳ Tutor IA</a>
+            <a href="exercicios.html" class="nav-link">▤ Exercícios</a>
+            <a href="calendario.html" class="nav-link">▦ Calendário</a>
+            <a href="materiais.html" class="nav-link">▧ Materiais</a>
+            <a href="progresso.html" class="nav-link active">↗ Meu progresso</a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="motivation-card">
+                <span class="motivation-icon">✦</span>
+                <h3>Errar também ensina.</h3>
+                <p>Cada erro é uma oportunidade para entender melhor.</p>
+            </div>
+            <p class="sidebar-footer">StudyMind · Em desenvolvimento</p>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <a class="back-link" href="index.html#inicio">← Voltar ao início</a>
+            <span id="last-updated" class="muted">Dados deste navegador</span>
+        </header>
+
+        <section class="page-heading">
+            <p class="eyebrow">ENTENDA SEU DESEMPENHO</p>
+            <h1>Meu <span>progresso</span></h1>
+            <p>Veja seus resultados e encontre as questões que precisam de revisão.</p>
+        </section>
+
+        <section class="stats-grid" aria-label="Estatísticas">
+            <article class="stat-card">
+                <span class="stat-label">Questões respondidas</span>
+                <strong id="total-answered" class="stat-number">0</strong>
+                <span class="stat-note">Tentativas registradas</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Acertos</span>
+                <strong id="total-correct" class="stat-number">0</strong>
+                <span class="stat-note">Respostas corretas</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Erros</span>
+                <strong id="total-wrong" class="stat-number">0</strong>
+                <span class="stat-note">Questões para revisar</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">Taxa de acertos</span>
+                <strong id="accuracy" class="stat-number">0%</strong>
+                <span class="stat-note">Acertos por tentativa</span>
+            </article>
+        </section>
+
+        <section class="panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">VISÃO POR MATÉRIA</p>
+                    <h2>Onde você está acertando?</h2>
+                </div>
+            </div>
+            <div id="subject-stats" class="subject-stats"></div>
+            <p id="subject-empty" class="empty-state" hidden>
+                Responda a algumas questões para ver seu desempenho por matéria.
+            </p>
+        </section>
+
+        <section class="panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">REVISÃO</p>
+                    <h2>Questões que você errou</h2>
+                    <p>Confira suas respostas e reveja a explicação.</p>
+                </div>
+                <span id="wrong-count" class="count-badge">0 questões</span>
+            </div>
+
+            <div class="filters">
+                <label>
+                    Matéria
+                    <select id="subject-filter">
+                        <option value="Todas">Todas as matérias</option>
+                    </select>
+                </label>
+
+                <label>
+                    Histórico
+                    <select id="attempt-filter">
+                        <option value="all">Todas as tentativas erradas</option>
+                        <option value="latest">Última tentativa por questão</option>
+                    </select>
+                </label>
+            </div>
+
+            <div id="wrong-questions" class="wrong-questions"></div>
+
+            <div id="wrong-empty" class="empty-state" hidden>
+                <span class="empty-icon">✦</span>
+                <h3>Nenhuma questão errada encontrada</h3>
+                <p>Quando houver erros registrados, eles aparecerão aqui para revisão.</p>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">ATIVIDADE RECENTE</p>
+                    <h2>Últimas respostas</h2>
+                </div>
+            </div>
+            <div id="recent-history" class="recent-history"></div>
+        </section>
+
+        <p id="page-status" class="page-status" role="status">
+            Dados carregados do armazenamento local deste navegador.
+        </p>
+
+        <footer class="footer">
+            <span>StudyMind <span class="footer-star">✦</span></span>
+            <span>Aprender é um processo, não uma corrida.</span>
+        </footer>
+    </main>
+</div>
+</body>
+</html>
