@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101225">
+    <meta name="description" content="Pratique matérias e acompanhe seu progresso no StudyMind.">
+    <title>StudyMind | Exercícios</title>
+    <link rel="stylesheet" href="exercicios.css">
+    <script src="exercicios.js" defer></script>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <a href="index.html" class="brand">
+                <span class="brand-icon">S✦</span>
+                <span>
+                    <strong>StudyMind</strong>
+                    <small>Seu espaço de aprendizagem</small>
+                </span>
+            </a>
+
+            <p class="menu-label">ESPAÇO DE ESTUDO</p>
+
+            <nav class="navigation" aria-label="Navegação principal">
+                <a href="index.html" class="nav-link">⌂ Visão geral</a>
+                <a href="index.html#tutor" class="nav-link">✳ Tutor IA</a>
+                <a href="exercicios.html" class="nav-link active">▤ Exercícios</a>
+                <a href="calendario.html" class="nav-link">▦ Calendário</a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="motivation-card">
+                    <span class="motivation-icon">✦</span>
+                    <h3>Errar faz parte.</h3>
+                    <p>Cada questão é uma oportunidade de entender algo novo.</p>
+                </div>
+                <p class="sidebar-footer">StudyMind · Em desenvolvimento</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <a class="back-link" href="index.html">← Voltar ao início</a>
+                <span class="topbar-label">SEU ESPAÇO DE APRENDIZAGEM</span>
+            </header>
+
+            <section class="page-heading">
+                <p class="eyebrow">PRATICAR PARA FIXAR</p>
+                <h1>Hora de <span>praticar</span></h1>
+                <p>Teste seus conhecimentos, entenda seus erros e evolua no seu ritmo.</p>
+            </section>
+
+            <section class="stats-grid" aria-label="Seu desempenho">
+                <article class="stat-card">
+                    <span class="stat-icon">▤</span>
+                    <p>Questões respondidas</p>
+                    <h2 id="total-answered">0</h2>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-icon green">✓</span>
+                    <p>Respostas corretas</p>
+                    <h2 id="total-correct">0</h2>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-icon orange">%</span>
+                    <p>Taxa de acerto</p>
+                    <h2 id="accuracy">0%</h2>
+                </article>
+            </section>
+
+            <section class="panel exercise-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">PERSONALIZE SUA PRÁTICA</p>
+                        <h2>Escolha seu desafio</h2>
+                    </div>
+                    <span class="heading-symbol">✳</span>
+                </div>
+
+                <div class="filters">
+                    <label>
+                        Matéria
+                        <select id="subject">
+                            <option value="Todas">Todas as matérias</option>
+                            <option value="Matemática">Matemática</option>
+                            <option value="Português">Português</option>
+                            <option value="História">História</option>
+                            <option value="Geografia">Geografia</option>
+                            <option value="Ciências">Ciências</option>
+                            <option value="Inglês">Inglês</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Dificuldade
+                        <select id="difficulty">
+                            <option value="Fácil">Fácil</option>
+                            <option value="Médio">Médio</option>
+                            <option value="Difícil">Difícil</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="ready-button" class="secondary-button" type="button">
+                        <span>▤</span> Questão pronta
+                    </button>
+                    <button id="ai-button" class="primary-button" type="button">
+                        <span>✳</span> Gerar com IA
+                    </button>
+                </div>
+
+                <p id="status-message" class="status-message" role="status" aria-live="polite">
+                    Escolha a matéria e comece a praticar.
+                </p>
+            </section>
+
+            <section class="panel question-panel" id="question-panel">
+                <div class="question-empty" id="question-empty">
+                    <div class="empty-icon">✧</div>
+                    <h2>Sua próxima descoberta começa aqui</h2>
+                    <p>Escolha uma dificuldade e clique em “Questão pronta” ou “Gerar com IA”.</p>
+                </div>
+
+                <div id="question-content" hidden>
+                    <div class="question-meta">
+                        <span id="question-subject" class="tag">Matéria</span>
+                        <span id="question-difficulty" class="tag difficulty-tag">Fácil</span>
+                        <span id="question-source" class="source-label">Questão pronta</span>
+                    </div>
+
+                    <p id="question-counter" class="question-counter"></p>
+                    <h2 id="question-text" class="question-text"></h2>
+
+                    <div id="options" class="options"></div>
+
+                    <div id="feedback" class="feedback" role="status" aria-live="polite" hidden>
+                        <h3 id="feedback-title"></h3>
+                        <p id="feedback-text"></p>
+                    </div>
+
+                    <div class="question-actions">
+                        <button id="check-button" class="primary-button" type="button" disabled>
+                            Conferir resposta
+                        </button>
+                        <button id="next-button" class="secondary-button" type="button" hidden>
+                            Próxima questão →
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel history-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">SUA JORNADA</p>
+                        <h2>Últimas respostas</h2>
+                    </div>
+                    <button id="clear-history" class="text-button" type="button">
+                        Limpar histórico
+                    </button>
+                </div>
+                <div id="history-list" class="history-list">
+                    <p class="history-empty">Suas respostas aparecerão aqui.</p>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <span>StudyMind <span class="footer-star">✦</span></span>
+                <span>Aprender é um processo, não uma corrida.</span>
+            </footer>
+        </main>
+    </div>
+</body>
+</html>
