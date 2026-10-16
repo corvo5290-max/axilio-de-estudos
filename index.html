@@ -6,11 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#101225">
     <meta name="description" content="StudyMind — seu espaço de aprendizagem.">
-
     <title>StudyMind | Seu espaço de aprendizagem</title>
-
     <link rel="stylesheet" href="style.css">
     <script src="app.js" defer></script>
+    <script src="progresso.js" defer></script>
 </head>
 <body>
 <div class="app">
@@ -31,19 +30,16 @@
             <a href="#tutor" class="nav-link">✳ Tutor IA</a>
             <a href="exercicios.html" class="nav-link">▤ Exercícios</a>
             <a href="calendario.html" class="nav-link">▦ Calendário</a>
-            <a href="materiais.html" class="nav-link">▧ Materiais</a>
+            <a href="#materiais" class="nav-link">▧ Materiais</a>
             <a href="#progresso" class="nav-link">↗ Meu progresso</a>
         </nav>
 
         <div class="chat-history">
-            <button id="new-chat-button"
-                    class="new-chat-button"
-                    type="button">
+            <button id="new-chat-button" class="new-chat-button" type="button">
                 <span>＋</span> Nova conversa
             </button>
 
             <p class="chat-history-title">SUAS CONVERSAS</p>
-
             <div id="chat-history-list" class="chat-history-list">
                 <p class="history-empty">Carregando histórico...</p>
             </div>
@@ -55,21 +51,15 @@
                 <h3>Um passo de cada vez.</h3>
                 <p>Você não precisa aprender tudo hoje. Só precisa começar.</p>
             </div>
-
             <p class="sidebar-footer">StudyMind · Em desenvolvimento</p>
         </div>
     </aside>
 
     <main class="main-content">
-
         <header class="topbar">
-            <button class="menu-toggle"
-                    id="menu-toggle"
-                    type="button"
-                    aria-label="Abrir menu"
-                    aria-expanded="false">
-                ☰
-            </button>
+            <button class="menu-toggle" id="menu-toggle"
+                    type="button" aria-label="Abrir menu"
+                    aria-expanded="false">☰</button>
 
             <div class="breadcrumb">
                 <span>Seu espaço</span>
@@ -83,23 +73,15 @@
             </div>
         </header>
 
-        <!-- VISÃO GERAL -->
         <section id="inicio" class="page">
-
             <div class="welcome">
                 <div class="welcome-content">
                     <p class="eyebrow">SEU ESPAÇO, SEU RITMO</p>
-
-                    <h1>
-                        Olá! Vamos aprender
-                        <span>alguma coisa nova?</span>
-                    </h1>
-
+                    <h1>Olá! Vamos aprender <span>alguma coisa nova?</span></h1>
                     <p class="description">
-                        Organize sua rotina, pratique e tire dúvidas com seu
-                        tutor de inteligência artificial.
+                        Organize sua rotina, pratique e tire dúvidas com seu tutor
+                        de inteligência artificial.
                     </p>
-
                     <a href="#tutor" class="primary-button">
                         Começar a estudar <span>→</span>
                     </a>
@@ -114,7 +96,6 @@
             </div>
 
             <div class="stats-grid">
-
                 <article class="stat-card">
                     <div class="stat-heading">
                         <span>Tempo de estudo</span>
@@ -141,52 +122,35 @@
                     <h2>0</h2>
                     <p>Hora de colocar em prática</p>
                 </article>
-
             </div>
 
             <div class="dashboard-grid">
-
                 <section class="panel">
                     <div class="panel-heading">
                         <div>
                             <h2>Plano de hoje</h2>
                             <p>Pequenas metas fazem diferença.</p>
                         </div>
-
-                        <a href="calendario.html" class="text-link">
-                            Ver calendário ↗
-                        </a>
+                        <a href="calendario.html" class="text-link">Ver calendário ↗</a>
                     </div>
 
                     <div class="empty-state">
                         <span>☷</span>
                         <h3>Nenhuma tarefa por enquanto</h3>
-                        <p>
-                            Adicione uma tarefa ao seu calendário para começar.
-                        </p>
-
-                        <a href="calendario.html" class="secondary-button">
-                            Criar tarefa
-                        </a>
+                        <p>Adicione uma tarefa ao seu calendário para começar.</p>
+                        <a href="calendario.html" class="secondary-button">Criar tarefa</a>
                     </div>
                 </section>
 
                 <section class="panel tutor-card">
                     <p class="eyebrow">SEU TUTOR PESSOAL</p>
                     <div class="tutor-decoration" aria-hidden="true">✳</div>
-
                     <h2>Entender vale mais que decorar.</h2>
-
-                    <p>
-                        Faça perguntas, peça exemplos e descubra a matéria
-                        no seu ritmo.
-                    </p>
-
+                    <p>Faça perguntas, peça exemplos e descubra a matéria no seu ritmo.</p>
                     <a href="#tutor" class="primary-button">
                         Conhecer o tutor <span>→</span>
                     </a>
                 </section>
-
             </div>
 
             <section class="panel upcoming-panel">
@@ -195,95 +159,54 @@
                         <h2>Próximos compromissos</h2>
                         <p>Provas, trabalhos e lembretes.</p>
                     </div>
-
-                    <a href="calendario.html" class="text-link">
-                        Abrir agenda ↗
-                    </a>
+                    <a href="calendario.html" class="text-link">Abrir agenda ↗</a>
                 </div>
-
                 <div class="empty-state compact">
                     <p>Seus próximos compromissos aparecerão aqui.</p>
                 </div>
             </section>
-
-            <!-- ATALHO PARA A BIBLIOTECA -->
-            <section class="panel library-shortcut">
-                <div class="panel-heading">
-                    <div>
-                        <p class="eyebrow">SEU CONTEÚDO, ORGANIZADO</p>
-                        <h2>Sua biblioteca de estudos</h2>
-                        <p>
-                            Acesse seus resumos, anotações e arquivos de estudo.
-                        </p>
-                    </div>
-                    <span class="placeholder-icon" aria-hidden="true">▧</span>
-                </div>
-
-                <a href="materiais.html" class="primary-button">
-                    Abrir materiais <span>→</span>
-                </a>
-            </section>
-
         </section>
 
-        <!-- TUTOR IA -->
         <section id="tutor" class="page">
             <div class="page-heading">
                 <p class="eyebrow">APRENDER CONVERSANDO</p>
                 <h1>Seu tutor <span>StudyMind</span></h1>
-                <p>
-                    Entenda, pratique e descubra respostas por conta própria.
-                </p>
+                <p>Entenda, pratique e descubra respostas por conta própria.</p>
             </div>
 
             <div class="panel tutor-panel">
                 <div class="chat-heading">
                     <div class="chat-symbol">✳</div>
-
                     <div>
                         <h2>Tutor StudyMind</h2>
                         <p>Seu espaço de aprendizagem</p>
                     </div>
-
                     <span class="online-indicator">● Disponível</span>
                 </div>
 
-                <div id="chat-messages"
-                     class="chat-messages"
-                     role="log"
-                     aria-live="polite"
-                     aria-label="Mensagens da conversa">
+                <div id="chat-messages" class="chat-messages"
+                     role="log" aria-live="polite" aria-label="Mensagens da conversa">
                 </div>
 
-                <p id="tutor-status-message"
-                   class="tutor-status"
-                   role="status">
-                    Pronto para estudar com você.
-                </p>
+                <p id="tutor-status-message" class="tutor-status"
+                   role="status">Pronto para estudar com você.</p>
 
                 <form id="tutor-form" class="tutor-form">
-                    <textarea id="tutor-input"
-                              name="message"
-                              rows="2"
-                              maxlength="4000"
+                    <textarea id="tutor-input" name="message"
+                              rows="2" maxlength="4000"
                               placeholder="Pergunte alguma coisa..."
                               aria-label="Sua mensagem"
                               required></textarea>
-
-                    <button id="tutor-send"
-                            type="submit"
-                            class="send-button">
+                    <button id="tutor-send" type="submit" class="send-button">
                         Enviar <span>➤</span>
                     </button>
                 </form>
 
-                <p class="chat-tip">
-                    Enter para enviar · Shift + Enter para nova linha
-                </p>
+                <p class="chat-tip">Enter para enviar · Shift + Enter para nova linha</p>
             </div>
         </section>
 
-        <!-- EXERCÍCIOS -->
+
         <section id="exercicios" class="page">
             <div class="page-heading">
                 <p class="eyebrow">PRATICAR PARA FIXAR</p>
@@ -293,77 +216,109 @@
 
             <div class="panel placeholder-panel">
                 <span class="placeholder-icon">▤</span>
-
                 <h2>Seus exercícios estão prontos para começar</h2>
-
                 <p>
                     Escolha uma matéria, responda questões e acompanhe
                     seu desempenho.
                 </p>
-
                 <a href="exercicios.html" class="primary-button">
                     Abrir exercícios →
                 </a>
             </div>
         </section>
 
-        <!-- CALENDÁRIO -->
+
         <section id="calendario" class="page">
             <div class="page-heading">
                 <p class="eyebrow">ORGANIZE SUA ROTINA</p>
                 <h1>Calendário & <span>tarefas</span></h1>
                 <p>Organize provas, trabalhos e sessões de estudo.</p>
             </div>
-
             <div class="panel placeholder-panel">
                 <span class="placeholder-icon">▦</span>
-
                 <h2>Seu calendário de estudos</h2>
-
-                <p>
-                    Aqui teremos calendário mensal, tarefas, datas de provas
-                    e acompanhamento do que você concluiu.
-                </p>
-
+                <p>Aqui teremos calendário mensal, tarefas, datas de provas e
+                   acompanhamento do que você concluiu.</p>
                 <p class="muted">Funcionalidade em desenvolvimento.</p>
-
-                <a href="calendario.html" class="primary-button">
-                    Abrir calendário →
-                </a>
             </div>
         </section>
 
-        <!-- PROGRESSO -->
+        <section id="materiais" class="page">
+            <div class="page-heading">
+                <p class="eyebrow">SEU CONTEÚDO, ORGANIZADO</p>
+                <h1>Minha <span>biblioteca</span></h1>
+                <p>Um lugar para guardar suas anotações e materiais.</p>
+            </div>
+            <div class="panel placeholder-panel">
+                <span class="placeholder-icon">▧</span>
+                <h2>Sua biblioteca</h2>
+                <p>Vamos adicionar resumos, anotações, arquivos e integração com o tutor IA.</p>
+                <p class="muted">Funcionalidade em desenvolvimento.</p>
+            </div>
+        </section>
+
         <section id="progresso" class="page">
             <div class="page-heading">
                 <p class="eyebrow">CADA PASSO CONTA</p>
                 <h1>Seu <span>progresso</span></h1>
-                <p>Acompanhe sua jornada de aprendizagem.</p>
+                <p>Veja como você está evoluindo nos exercícios.</p>
             </div>
 
-            <div class="panel placeholder-panel">
-                <span class="placeholder-icon">↗</span>
-
-                <h2>Sua evolução</h2>
-
-                <p>
-                    Aqui veremos tarefas concluídas, exercícios realizados
-                    e os assuntos que precisam de mais revisão.
-                </p>
-
-                <p class="muted">Funcionalidade em desenvolvimento.</p>
+            <div class="stats-grid">
+                <article class="stat-card">
+                    <div class="stat-heading"><span>Questões respondidas</span><span class="stat-icon purple">✎</span></div>
+                    <h2 id="progress-answered">0</h2>
+                    <p>Prática acumulada</p>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-heading"><span>Taxa de acertos</span><span class="stat-icon green">✓</span></div>
+                    <h2 id="progress-accuracy">0%</h2>
+                    <p id="progress-correct-count">0 acertos</p>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-heading"><span>Questões erradas</span><span class="stat-icon orange">↗</span></div>
+                    <h2 id="progress-wrong">0</h2>
+                    <p>Oportunidades para revisar</p>
+                </article>
             </div>
+
+            <div class="dashboard-grid">
+                <section class="panel">
+                    <div class="panel-heading">
+                        <div><h2>Matérias para revisar</h2><p>Onde os erros mais aparecem.</p></div>
+                    </div>
+                    <div id="progress-subjects" class="progress-list">
+                        <p class="muted">Suas estatísticas aparecerão aqui quando houver respostas registradas.</p>
+                    </div>
+                </section>
+                <section class="panel">
+                    <div class="panel-heading">
+                        <div><h2>Últimos erros</h2><p>Questões que merecem outra olhada.</p></div>
+                    </div>
+                    <div id="progress-mistakes" class="progress-list">
+                        <p class="muted">Nenhuma questão errada registrada ainda.</p>
+                    </div>
+                    <a href="exercicios.html" class="primary-button">Praticar exercícios <span>→</span></a>
+                </section>
+            </div>
+
+            <section class="panel upcoming-panel">
+                <div class="panel-heading">
+                    <div><h2>Provas realizadas</h2><p>Resumo dos seus resultados anteriores.</p></div>
+                </div>
+                <div id="progress-exams" class="progress-list">
+                    <p class="muted">Você ainda não tem provas registradas.</p>
+                </div>
+            </section>
         </section>
 
         <footer class="footer">
             <span>StudyMind <span class="footer-star">✦</span></span>
             <span>Aprender é um processo, não uma corrida.</span>
         </footer>
-
     </main>
 </div>
 
 <div class="mobile-overlay" id="mobile-overlay"></div>
-
 </body>
 </html>
