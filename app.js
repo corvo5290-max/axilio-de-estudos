@@ -87,4 +87,92 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     updateNavigation();
+
+    // Tutor IA: o navegador chama apenas o nosso backend, nunca a Groq diretamente.
+    const tutorForm = document.getElementById("tutor-form");
+    const tutorInput = document.getElementById("tutor-input");
+    const tutorSend = document.getElementById("tutor-send");
+    const chatMessages = document.getElementById("chat-messages");
+    const tutorStatus = document.getElementById("tutor-status-message");
+
+    // Para testar localmente. Depois da hospedagem, trocaremos pela URL HTTPS do backend.
+    const API_BASE_URL = "http://127.0.0.1:8000";
+    const conversation = [];
+
+    function addChatMessage(role, content) {
+        const article = document.createElement("article");
+        article.className = `chat-message ${role === "user" ? "user-message" : "assistant-message"}`;
+
+        const avatar = document.createElement("div");
+        avatar.className = "message-avatar";
+        avatar.setAttribute("aria-hidden", "true");
+        avatar.textContent = role === "user" ? "Você" : "✳";
+
+        const bubble = document.createElement("div");
+        bubble.className = "message-bubble";
+        const name = document.createElement("strong");
+        name.textContent = role === "user" ? "Você" : "Tutor StudyMind";
+        const text = document.createElement("p");
+        text.textContent = content;
+        bubble.append(name, text);
+        article.append(avatar, bubble);
+        chatMessages.append(article);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return article;
+    }
+
+    if (tutorForm && tutorInput && tutorSend && chatMessages && tutorStatus) {
+        tutorForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const mensagem = tutorInput.value.trim();
+            if (!mensagem || tutorSend.disabled) return;
+
+            addChatMessage("user", mensagem);
+            conversation.push({ role: "user", content: mensagem });
+            tutorInput.value = "";
+            tutorSend.disabled = true;
+            tutorInput.disabled = true;
+            tutorStatus.classList.remove("error");
+            tutorStatus.textContent = "O tutor está pensando...";
+
+            const typing = addChatMessage("assistant", "Estou preparando uma explicação...");
+            typing.querySelector("p").classList.add("chat-typing");
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/tutor`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ messages: conversation.slice(-12) })
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.detail || "Não consegui falar com o tutor.");
+                }
+                const resposta = data.resposta || "Não recebi uma resposta desta vez.";
+                typing.querySelector("p").textContent = resposta;
+                typing.querySelector("p").classList.remove("chat-typing");
+                conversation.push({ role: "assistant", content: resposta });
+                tutorStatus.textContent = "Resposta recebida. Pode perguntar mais!";
+            } catch (error) {
+                typing.remove();
+                conversation.pop();
+                tutorStatus.classList.add("error");
+                tutorStatus.textContent = error.message.includes("Failed to fetch")
+                    ? "Não consegui acessar o backend. Confira se o servidor Python está rodando."
+                    : error.message;
+                addChatMessage("assistant", "Tente novamente quando a conexão estiver funcionando.");
+            } finally {
+                tutorSend.disabled = false;
+                tutorInput.disabled = false;
+                tutorInput.focus();
+            }
+        });
+
+        tutorInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                tutorForm.requestSubmit();
+            }
+        });
+    }
 });
