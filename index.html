@@ -83,7 +83,21 @@
 
             <section id="tutor" class="page">
                 <div class="page-heading"><p class="eyebrow">APRENDER CONVERSANDO</p><h1>Seu tutor <span>StudyMind</span></h1><p>Entenda, pratique e descubra respostas por conta própria.</p></div>
-                <div class="panel placeholder-panel"><span class="placeholder-icon">✳</span><h2>Seu espaço de aprendizagem</h2><p>Aqui construiremos o tutor com a API da Groq, explicações, método socrático e adaptação às suas dúvidas.</p><p class="muted">Funcionalidade em desenvolvimento.</p></div>
+                <div class="panel tutor-chat-panel">
+                    <div class="tutor-status"><span class="status-dot" aria-hidden="true"></span><span>Tutor StudyMind</span><span class="tutor-status-note">IA educacional</span></div>
+                    <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-label="Conversa com o tutor">
+                        <article class="chat-message assistant-message">
+                            <div class="message-avatar" aria-hidden="true">✳</div>
+                            <div class="message-bubble"><strong>Tutor StudyMind</strong><p>Oi! 👋 Sou seu tutor de estudos. Qual assunto você quer entender hoje? Posso explicar passo a passo, dar exemplos e depois propor um exercício para você praticar.</p></div>
+                        </article>
+                    </div>
+                    <form id="tutor-form" class="chat-form">
+                        <label class="sr-only" for="tutor-input">Sua dúvida</label>
+                        <textarea id="tutor-input" name="mensagem" rows="2" maxlength="4000" placeholder="Escreva sua dúvida aqui..." required></textarea>
+                        <div class="chat-form-bottom"><span>O tutor pode cometer erros. Confira informações importantes.</span><button id="tutor-send" class="primary-button chat-send" type="submit">Enviar <span>↑</span></button></div>
+                    </form>
+                    <p id="tutor-status-message" class="chat-feedback" role="status">Digite uma pergunta para começar.</p>
+                </div>
             </section>
 
             <section id="exercicios" class="page">
