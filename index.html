@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,118 +11,266 @@
     <script src="app.js" defer></script>
 </head>
 <body>
-    <div class="app">
-        <aside class="sidebar">
-            <a href="#inicio" class="brand">
-                <span class="brand-icon">S✦</span>
-                <span><strong>StudyMind</strong><small>Seu espaço de aprendizagem</small></span>
-            </a>
-            <p class="menu-label">ESPAÇO DE ESTUDO</p>
-            <nav class="navigation" aria-label="Navegação principal">
-                <a href="#inicio" class="nav-link active">⌂ Visão geral</a>
-                <a href="#tutor" class="nav-link">✳ Tutor IA</a>
-                <a href="#exercicios" class="nav-link">▤ Exercícios</a>
-                <a href="#calendario" class="nav-link">▦ Calendário</a>
-                <a href="#materiais" class="nav-link">▧ Materiais</a>
-                <a href="#progresso" class="nav-link">↗ Meu progresso</a>
-            </nav>
-            <div class="sidebar-bottom">
-                <div class="motivation-card">
-                    <span class="motivation-icon">✦</span>
-                    <h3>Um passo de cada vez.</h3>
-                    <p>Você não precisa aprender tudo hoje. Só precisa começar.</p>
-                </div>
-                <p class="sidebar-footer">StudyMind · Em desenvolvimento</p>
+<div class="app">
+
+    <aside class="sidebar" id="sidebar">
+        <a href="#inicio" class="brand">
+            <span class="brand-icon">S✦</span>
+            <span>
+                <strong>StudyMind</strong>
+                <small>Seu espaço de aprendizagem</small>
+            </span>
+        </a>
+
+        <p class="menu-label">ESPAÇO DE ESTUDO</p>
+
+        <nav class="navigation" aria-label="Navegação principal">
+            <a href="#inicio" class="nav-link">⌂ Visão geral</a>
+            <a href="#tutor" class="nav-link">✳ Tutor IA</a>
+            <a href="#exercicios" class="nav-link">▤ Exercícios</a>
+            <a href="#calendario" class="nav-link">▦ Calendário</a>
+            <a href="#materiais" class="nav-link">▧ Materiais</a>
+            <a href="#progresso" class="nav-link">↗ Meu progresso</a>
+        </nav>
+
+        <div class="chat-history">
+            <button id="new-chat-button" class="new-chat-button" type="button">
+                <span>＋</span> Nova conversa
+            </button>
+
+            <p class="chat-history-title">SUAS CONVERSAS</p>
+            <div id="chat-history-list" class="chat-history-list">
+                <p class="history-empty">Carregando histórico...</p>
             </div>
-        </aside>
+        </div>
 
-        <main class="main-content">
-            <header class="topbar">
-                <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Abrir menu">☰</button>
-                <div class="breadcrumb"><span>Seu espaço</span><span>/</span><strong>Visão geral</strong></div>
-                <div class="profile"><span id="current-date"></span><div class="avatar" aria-label="Perfil do estudante">✦</div></div>
-            </header>
+        <div class="sidebar-bottom">
+            <div class="motivation-card">
+                <span class="motivation-icon">✦</span>
+                <h3>Um passo de cada vez.</h3>
+                <p>Você não precisa aprender tudo hoje. Só precisa começar.</p>
+            </div>
+            <p class="sidebar-footer">StudyMind · Em desenvolvimento</p>
+        </div>
+    </aside>
 
-            <section id="inicio" class="page">
-                <div class="welcome">
-                    <div class="welcome-content">
-                        <p class="eyebrow">SEU ESPAÇO, SEU RITMO</p>
-                        <h1>Olá! Vamos aprender <span>alguma coisa nova?</span></h1>
-                        <p class="description">Organize sua rotina, pratique e tire dúvidas com seu tutor de inteligência artificial.</p>
-                        <a href="#tutor" class="primary-button">Começar a estudar <span>→</span></a>
+    <main class="main-content">
+        <header class="topbar">
+            <button class="menu-toggle" id="menu-toggle"
+                    type="button" aria-label="Abrir menu"
+                    aria-expanded="false">☰</button>
+
+            <div class="breadcrumb">
+                <span>Seu espaço</span>
+                <span>/</span>
+                <strong>Visão geral</strong>
+            </div>
+
+            <div class="profile">
+                <span id="current-date"></span>
+                <div class="avatar" aria-label="Perfil do estudante">✦</div>
+            </div>
+        </header>
+
+        <section id="inicio" class="page">
+            <div class="welcome">
+                <div class="welcome-content">
+                    <p class="eyebrow">SEU ESPAÇO, SEU RITMO</p>
+                    <h1>Olá! Vamos aprender <span>alguma coisa nova?</span></h1>
+                    <p class="description">
+                        Organize sua rotina, pratique e tire dúvidas com seu tutor
+                        de inteligência artificial.
+                    </p>
+                    <a href="#tutor" class="primary-button">
+                        Começar a estudar <span>→</span>
+                    </a>
+                </div>
+
+                <div class="welcome-decoration" aria-hidden="true">
+                    <div class="decoration-orbit"></div>
+                    <div class="decoration-book">✧</div>
+                    <span class="decoration-star star-one">✦</span>
+                    <span class="decoration-star star-two">✧</span>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <article class="stat-card">
+                    <div class="stat-heading">
+                        <span>Tempo de estudo</span>
+                        <span class="stat-icon purple">◷</span>
                     </div>
-                    <div class="welcome-decoration" aria-hidden="true">
-                        <div class="decoration-orbit"></div><div class="decoration-book">✧</div>
-                        <span class="decoration-star star-one">✦</span><span class="decoration-star star-two">✧</span>
+                    <h2>0 <small>min</small></h2>
+                    <p>Seu tempo registrado</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-heading">
+                        <span>Tarefas concluídas</span>
+                        <span class="stat-icon green">✓</span>
                     </div>
-                </div>
+                    <h2>0</h2>
+                    <p>Uma tarefa de cada vez</p>
+                </article>
 
-                <div class="stats-grid">
-                    <article class="stat-card"><div class="stat-heading"><span>Tempo de estudo</span><span class="stat-icon purple">◷</span></div><h2>0 <small>min</small></h2><p>Seu tempo registrado</p></article>
-                    <article class="stat-card"><div class="stat-heading"><span>Tarefas concluídas</span><span class="stat-icon green">✓</span></div><h2>0</h2><p>Uma tarefa de cada vez</p></article>
-                    <article class="stat-card"><div class="stat-heading"><span>Exercícios feitos</span><span class="stat-icon orange">✎</span></div><h2>0</h2><p>Hora de colocar em prática</p></article>
-                </div>
+                <article class="stat-card">
+                    <div class="stat-heading">
+                        <span>Exercícios feitos</span>
+                        <span class="stat-icon orange">✎</span>
+                    </div>
+                    <h2>0</h2>
+                    <p>Hora de colocar em prática</p>
+                </article>
+            </div>
 
-                <div class="dashboard-grid">
-                    <section class="panel">
-                        <div class="panel-heading"><div><h2>Plano de hoje</h2><p>Pequenas metas fazem diferença.</p></div><a href="#calendario" class="text-link">Ver calendário ↗</a></div>
-                        <div class="empty-state"><span>☷</span><h3>Nenhuma tarefa por enquanto</h3><p>Adicione uma tarefa ao seu calendário para começar.</p><a href="#calendario" class="secondary-button">Criar tarefa</a></div>
-                    </section>
-                    <section class="panel tutor-card">
-                        <p class="eyebrow">SEU TUTOR PESSOAL</p><div class="tutor-decoration" aria-hidden="true">✳</div>
-                        <h2>Entender vale mais que decorar.</h2>
-                        <p>Faça perguntas, peça exemplos e descubra a matéria no seu ritmo.</p>
-                        <a href="#tutor" class="primary-button">Conhecer o tutor <span>→</span></a>
-                    </section>
-                </div>
+            <div class="dashboard-grid">
+                <section class="panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h2>Plano de hoje</h2>
+                            <p>Pequenas metas fazem diferença.</p>
+                        </div>
+                        <a href="#calendario" class="text-link">Ver calendário ↗</a>
+                    </div>
 
-                <section class="panel upcoming-panel">
-                    <div class="panel-heading"><div><h2>Próximos compromissos</h2><p>Provas, trabalhos e lembretes.</p></div><a href="#calendario" class="text-link">Abrir agenda ↗</a></div>
-                    <div class="empty-state compact"><p>Seus próximos compromissos aparecerão aqui.</p></div>
+                    <div class="empty-state">
+                        <span>☷</span>
+                        <h3>Nenhuma tarefa por enquanto</h3>
+                        <p>Adicione uma tarefa ao seu calendário para começar.</p>
+                        <a href="#calendario" class="secondary-button">Criar tarefa</a>
+                    </div>
                 </section>
-            </section>
 
-            <section id="tutor" class="page">
-                <div class="page-heading"><p class="eyebrow">APRENDER CONVERSANDO</p><h1>Seu tutor <span>StudyMind</span></h1><p>Entenda, pratique e descubra respostas por conta própria.</p></div>
-                <div class="panel tutor-chat-panel">
-                    <div class="tutor-status"><span class="status-dot" aria-hidden="true"></span><span>Tutor StudyMind</span><span class="tutor-status-note">IA educacional</span></div>
-                    <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-label="Conversa com o tutor">
-                        <article class="chat-message assistant-message">
-                            <div class="message-avatar" aria-hidden="true">✳</div>
-                            <div class="message-bubble"><strong>Tutor StudyMind</strong><p>Oi! 👋 Sou seu tutor de estudos. Qual assunto você quer entender hoje? Posso explicar passo a passo, dar exemplos e depois propor um exercício para você praticar.</p></div>
-                        </article>
+                <section class="panel tutor-card">
+                    <p class="eyebrow">SEU TUTOR PESSOAL</p>
+                    <div class="tutor-decoration" aria-hidden="true">✳</div>
+                    <h2>Entender vale mais que decorar.</h2>
+                    <p>Faça perguntas, peça exemplos e descubra a matéria no seu ritmo.</p>
+                    <a href="#tutor" class="primary-button">
+                        Conhecer o tutor <span>→</span>
+                    </a>
+                </section>
+            </div>
+
+            <section class="panel upcoming-panel">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Próximos compromissos</h2>
+                        <p>Provas, trabalhos e lembretes.</p>
                     </div>
-                    <form id="tutor-form" class="chat-form">
-                        <label class="sr-only" for="tutor-input">Sua dúvida</label>
-                        <textarea id="tutor-input" name="mensagem" rows="2" maxlength="4000" placeholder="Escreva sua dúvida aqui..." required></textarea>
-                        <div class="chat-form-bottom"><span>O tutor pode cometer erros. Confira informações importantes.</span><button id="tutor-send" class="primary-button chat-send" type="submit">Enviar <span>↑</span></button></div>
-                    </form>
-                    <p id="tutor-status-message" class="chat-feedback" role="status">Digite uma pergunta para começar.</p>
+                    <a href="#calendario" class="text-link">Abrir agenda ↗</a>
+                </div>
+                <div class="empty-state compact">
+                    <p>Seus próximos compromissos aparecerão aqui.</p>
                 </div>
             </section>
+        </section>
 
-            <section id="exercicios" class="page">
-                <div class="page-heading"><p class="eyebrow">PRATICAR PARA FIXAR</p><h1>Hora de <span>praticar</span></h1><p>Transforme o que estudou em conhecimento.</p></div>
-                <div class="panel placeholder-panel"><span class="placeholder-icon">▤</span><h2>Seus exercícios</h2><p>Vamos adicionar questões por matéria, níveis de dificuldade, correções e explicações.</p><p class="muted">Funcionalidade em desenvolvimento.</p></div>
-            </section>
+        <section id="tutor" class="page">
+            <div class="page-heading">
+                <p class="eyebrow">APRENDER CONVERSANDO</p>
+                <h1>Seu tutor <span>StudyMind</span></h1>
+                <p>Entenda, pratique e descubra respostas por conta própria.</p>
+            </div>
 
-            <section id="calendario" class="page">
-                <div class="page-heading"><p class="eyebrow">ORGANIZE SUA ROTINA</p><h1>Calendário & <span>tarefas</span></h1><p>Organize provas, trabalhos e sessões de estudo.</p></div>
-                <div class="panel placeholder-panel"><span class="placeholder-icon">▦</span><h2>Seu calendário de estudos</h2><p>Aqui teremos calendário mensal, tarefas, datas de provas e acompanhamento do que você concluiu.</p><p class="muted">Funcionalidade em desenvolvimento.</p></div>
-            </section>
+            <div class="panel tutor-panel">
+                <div class="chat-heading">
+                    <div class="chat-symbol">✳</div>
+                    <div>
+                        <h2>Tutor StudyMind</h2>
+                        <p>Seu espaço de aprendizagem</p>
+                    </div>
+                    <span class="online-indicator">● Disponível</span>
+                </div>
 
-            <section id="materiais" class="page">
-                <div class="page-heading"><p class="eyebrow">SEU CONTEÚDO, ORGANIZADO</p><h1>Minha <span>biblioteca</span></h1><p>Um lugar para guardar suas anotações e materiais.</p></div>
-                <div class="panel placeholder-panel"><span class="placeholder-icon">▧</span><h2>Sua biblioteca</h2><p>Vamos adicionar resumos, anotações, arquivos e integração com o tutor IA.</p><p class="muted">Funcionalidade em desenvolvimento.</p></div>
-            </section>
+                <div id="chat-messages" class="chat-messages"
+                     role="log" aria-live="polite" aria-label="Mensagens da conversa">
+                </div>
 
-            <section id="progresso" class="page">
-                <div class="page-heading"><p class="eyebrow">CADA PASSO CONTA</p><h1>Seu <span>progresso</span></h1><p>Acompanhe sua jornada de aprendizagem.</p></div>
-                <div class="panel placeholder-panel"><span class="placeholder-icon">↗</span><h2>Sua evolução</h2><p>Aqui veremos tarefas concluídas, exercícios realizados e os assuntos que precisam de mais revisão.</p><p class="muted">Funcionalidade em desenvolvimento.</p></div>
-            </section>
+                <p id="tutor-status-message" class="tutor-status"
+                   role="status">Pronto para estudar com você.</p>
 
-            <footer class="footer"><span>StudyMind <span class="footer-star">✦</span></span><span>Aprender é um processo, não uma corrida.</span></footer>
-        </main>
-    </div>
+                <form id="tutor-form" class="tutor-form">
+                    <textarea id="tutor-input" name="message"
+                              rows="2" maxlength="4000"
+                              placeholder="Pergunte alguma coisa..."
+                              aria-label="Sua mensagem"
+                              required></textarea>
+                    <button id="tutor-send" type="submit" class="send-button">
+                        Enviar <span>➤</span>
+                    </button>
+                </form>
+
+                <p class="chat-tip">Enter para enviar · Shift + Enter para nova linha</p>
+            </div>
+        </section>
+
+        <section id="exercicios" class="page">
+            <div class="page-heading">
+                <p class="eyebrow">PRATICAR PARA FIXAR</p>
+                <h1>Hora de <span>praticar</span></h1>
+                <p>Transforme o que estudou em conhecimento.</p>
+            </div>
+            <div class="panel placeholder-panel">
+                <span class="placeholder-icon">▤</span>
+                <h2>Seus exercícios</h2>
+                <p>Vamos adicionar questões por matéria, níveis de dificuldade,
+                   correções e explicações.</p>
+                <p class="muted">Funcionalidade em desenvolvimento.</p>
+            </div>
+        </section>
+
+        <section id="calendario" class="page">
+            <div class="page-heading">
+                <p class="eyebrow">ORGANIZE SUA ROTINA</p>
+                <h1>Calendário & <span>tarefas</span></h1>
+                <p>Organize provas, trabalhos e sessões de estudo.</p>
+            </div>
+            <div class="panel placeholder-panel">
+                <span class="placeholder-icon">▦</span>
+                <h2>Seu calendário de estudos</h2>
+                <p>Aqui teremos calendário mensal, tarefas, datas de provas e
+                   acompanhamento do que você concluiu.</p>
+                <p class="muted">Funcionalidade em desenvolvimento.</p>
+            </div>
+        </section>
+
+        <section id="materiais" class="page">
+            <div class="page-heading">
+                <p class="eyebrow">SEU CONTEÚDO, ORGANIZADO</p>
+                <h1>Minha <span>biblioteca</span></h1>
+                <p>Um lugar para guardar suas anotações e materiais.</p>
+            </div>
+            <div class="panel placeholder-panel">
+                <span class="placeholder-icon">▧</span>
+                <h2>Sua biblioteca</h2>
+                <p>Vamos adicionar resumos, anotações, arquivos e integração com o tutor IA.</p>
+                <p class="muted">Funcionalidade em desenvolvimento.</p>
+            </div>
+        </section>
+
+        <section id="progresso" class="page">
+            <div class="page-heading">
+                <p class="eyebrow">CADA PASSO CONTA</p>
+                <h1>Seu <span>progresso</span></h1>
+                <p>Acompanhe sua jornada de aprendizagem.</p>
+            </div>
+            <div class="panel placeholder-panel">
+                <span class="placeholder-icon">↗</span>
+                <h2>Sua evolução</h2>
+                <p>Aqui veremos tarefas concluídas, exercícios realizados e os
+                   assuntos que precisam de mais revisão.</p>
+                <p class="muted">Funcionalidade em desenvolvimento.</p>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <span>StudyMind <span class="footer-star">✦</span></span>
+            <span>Aprender é um processo, não uma corrida.</span>
+        </footer>
+    </main>
+</div>
+
+<div class="mobile-overlay" id="mobile-overlay"></div>
 </body>
 </html>
