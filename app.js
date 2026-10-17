@@ -1,5 +1,4 @@
-
- // StudyMind — interações iniciais da interface
+// StudyMind — interações iniciais da interface
 // Este arquivo não contém a chave da API da Groq. A chave deverá ficar no backend.
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -18,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
         progresso: "Meu progresso"
     };
 
+    // Mostra a data atual no idioma do navegador (português do Brasil).
     if (dateElement) {
         dateElement.textContent = new Intl.DateTimeFormat("pt-BR", {
             weekday: "short",
@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }).format(new Date());
     }
 
+    // Garante que a página inicial apareça quando o endereço não tiver uma seção.
     if (!window.location.hash || !document.querySelector(window.location.hash)) {
         window.history.replaceState(null, "", "#inicio");
     }
@@ -53,11 +54,12 @@ document.addEventListener("DOMContentLoaded", () => {
             breadcrumbTitle.textContent = pageNames[currentId] || "Visão geral";
         }
 
+        // Fecha o menu depois da navegação, especialmente em telas pequenas.
         document.body.classList.remove("menu-open");
     }
 
+    // Atualiza o estado visual ao clicar em links e ao usar voltar/avançar.
     window.addEventListener("hashchange", updateNavigation);
-
     navLinks.forEach((link) => link.addEventListener("click", () => {
         document.body.classList.remove("menu-open");
     }));
@@ -73,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Fecha o menu móvel ao pressionar Escape.
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             document.body.classList.remove("menu-open");
@@ -84,171 +87,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     updateNavigation();
-
-    // Tutor IA
-    const tutorForm = document.getElementById("tutor-form");
-    const tutorInput = document.getElementById("tutor-input");
-    const tutorSend = document.getElementById("tutor-send");
-    const chatMessages = document.getElementById("chat-messages");
-    const tutorStatus = document.getElementById("tutor-status-message");
-
-    const API_BASE_URL = "https://axilio-de-estudos.onrender.com";
-    const STORAGE_KEY = "studymind_tutor_conversation_v1";
-
-    function loadConversation() {
-        try {
-            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-            if (!Array.isArray(saved)) return [];
-
-            return saved
-                .filter((message) =>
-                    message &&
-                    (message.role === "user" || message.role === "assistant") &&
-                    typeof message.content === "string" &&
-                    message.content.trim().length > 0
-                )
-                .slice(-60);
-        } catch (error) {
-            console.warn("Não foi possível carregar a memória do Tutor StudyMind.");
-            return [];
-        }
-    }
-
-    let conversation = loadConversation();
-
-    function saveConversation() {
-        try {
-            localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify(conversation.slice(-60))
-            );
-        } catch (error) {
-            console.warn("Não foi possível salvar a memória do Tutor StudyMind.");
-        }
-    }
-
-    function addChatMessage(role, content) {
-        const article = document.createElement("article");
-        article.className =
-            `chat-message ${role === "user" ? "user-message" : "assistant-message"}`;
-
-        const avatar = document.createElement("div");
-        avatar.className = "message-avatar";
-        avatar.setAttribute("aria-hidden", "true");
-        avatar.textContent = role === "user" ? "Você" : "✳";
-
-        const bubble = document.createElement("div");
-        bubble.className = "message-bubble";
-
-        const name = document.createElement("strong");
-        name.textContent = role === "user" ? "Você" : "Tutor StudyMind";
-
-        const text = document.createElement("p");
-        text.textContent = content;
-
-        bubble.append(name, text);
-        article.append(avatar, bubble);
-        chatMessages.append(article);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        return article;
-    }
-
-    if (chatMessages && conversation.length > 0) {
-        chatMessages.innerHTML = "";
-
-        conversation.forEach((message) => {
-            addChatMessage(message.role, message.content);
-        });
-
-        if (tutorStatus) {
-            tutorStatus.textContent =
-                "Conversa anterior restaurada neste navegador.";
-        }
-    }
-
-    if (tutorForm && tutorInput && tutorSend && chatMessages && tutorStatus) {
-        tutorForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
-
-            const mensagem = tutorInput.value.trim();
-            if (!mensagem || tutorSend.disabled) return;
-
-            addChatMessage("user", mensagem);
-            conversation.push({ role: "user", content: mensagem });
-            saveConversation();
-
-            tutorInput.value = "";
-            tutorSend.disabled = true;
-            tutorInput.disabled = true;
-
-            tutorStatus.classList.remove("error");
-            tutorStatus.textContent = "O tutor está pensando...";
-
-            const typing = addChatMessage(
-                "assistant",
-                "Estou preparando uma explicação..."
-            );
-            typing.querySelector("p").classList.add("chat-typing");
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/tutor`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages: conversation.slice(-12)
-                    })
-                });
-
-                const data = await response.json().catch(() => ({}));
-
-                if (!response.ok) {
-                    throw new Error(
-                        data.detail || "Não consegui falar com o tutor."
-                    );
-                }
-
-                const resposta =
-                    data.resposta || "Não recebi uma resposta desta vez.";
-
-                typing.querySelector("p").textContent = resposta;
-                typing.querySelector("p").classList.remove("chat-typing");
-
-                conversation.push({
-                    role: "assistant",
-                    content: resposta
-                });
-                saveConversation();
-
-                tutorStatus.textContent =
-                    "Resposta recebida. Pode perguntar mais!";
-            } catch (error) {
-                typing.remove();
-                conversation.pop();
-                saveConversation();
-
-                tutorStatus.classList.add("error");
-                tutorStatus.textContent =
-                    error.message.includes("Failed to fetch")
-                        ? "Não consegui acessar o backend. Confira se o servidor Python está rodando."
-                        : error.message;
-
-                addChatMessage(
-                    "assistant",
-                    "Tente novamente quando a conexão estiver funcionando."
-                );
-            } finally {
-                tutorSend.disabled = false;
-                tutorInput.disabled = false;
-                tutorInput.focus();
-            }
-        });
-
-        tutorInput.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                tutorForm.requestSubmit();
-            }
-        });
-    }
 });
