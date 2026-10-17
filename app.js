@@ -1,14 +1,20 @@
 
 document.addEventListener("DOMContentLoaded", () => {
+    "use strict";
+
     // CONFIGURAÇÃO
     const API_BASE_URL = "https://axilio-de-estudos.onrender.com";
     const STORAGE_KEY = "studymind_tutor_history_v1";
     const OLD_STORAGE_KEY = "studymind_tutor_conversation_v1";
+    const MAX_CHATS = 50;
+    const MAX_MESSAGES = 60;
+    const mobileMedia = window.matchMedia("(max-width: 760px)");
 
-    // ELEMENTOS DA INTERFACE
+    // ELEMENTOS
     const dateElement = document.getElementById("current-date");
     const menuToggle = document.getElementById("menu-toggle");
     const mobileOverlay = document.getElementById("mobile-overlay");
+    const sidebar = document.querySelector(".sidebar");
     const navLinks = [...document.querySelectorAll(".nav-link")];
     const pages = [...document.querySelectorAll(".page")];
     const breadcrumbTitle = document.querySelector(".breadcrumb strong");
@@ -40,12 +46,41 @@ document.addEventListener("DOMContentLoaded", () => {
         }).format(new Date());
     }
 
-    // NAVEGAÇÃO
+    // MENU MOBILE
+    function closeMobileMenu() {
+        document.body.classList.remove("menu-open");
+
+        if (menuToggle) {
+            menuToggle.setAttribute("aria-expanded", "false");
+            menuToggle.setAttribute("aria-label", "Abrir menu");
+        }
+    }
+
+    function toggleMobileMenu() {
+        const isOpen = !document.body.classList.contains("menu-open");
+
+        document.body.classList.toggle("menu-open", isOpen);
+
+        if (menuToggle) {
+            menuToggle.setAttribute("aria-expanded", String(isOpen));
+            menuToggle.setAttribute(
+                "aria-label",
+                isOpen ? "Fechar menu" : "Abrir menu"
+            );
+        }
+    }
+
     function updateNavigation() {
         const currentId = window.location.hash.slice(1) || "inicio";
 
         navLinks.forEach((link) => {
-            const active = link.getAttribute("href") === `#${currentId}`;
+            const href = link.getAttribute("href") || "";
+
+            // Só ativa links de seções internas, como #inicio e #tutor.
+            const active =
+                href.startsWith("#") &&
+                href === `#${currentId}`;
+
             link.classList.toggle("active", active);
 
             if (active) {
@@ -70,60 +105,89 @@ document.addEventListener("DOMContentLoaded", () => {
         closeMobileMenu();
     }
 
-    function closeMobileMenu() {
-        document.body.classList.remove("menu-open");
+    function setInitialHash() {
+        const hash = window.location.hash;
+        const target = hash
+            ? document.getElementById(hash.slice(1))
+            : null;
 
-        if (menuToggle) {
-            menuToggle.setAttribute("aria-expanded", "false");
-            menuToggle.setAttribute("aria-label", "Abrir menu");
+        if (!target) {
+            window.history.replaceState(null, "", "#inicio");
         }
     }
 
-    if (
-        !window.location.hash ||
-        !document.querySelector(window.location.hash)
-    ) {
-        window.history.replaceState(null, "", "#inicio");
-    }
+    setInitialHash();
 
     window.addEventListener("hashchange", updateNavigation);
 
     if (menuToggle) {
-        menuToggle.addEventListener("click", () => {
-            const isOpen = document.body.classList.toggle("menu-open");
+        menuToggle.setAttribute("aria-expanded", "false");
 
-            menuToggle.setAttribute("aria-expanded", String(isOpen));
-            menuToggle.setAttribute(
-                "aria-label",
-                isOpen ? "Fechar menu" : "Abrir menu"
-            );
-        });
+        if (sidebar && !sidebar.id) {
+            sidebar.id = "sidebar";
+        }
+
+        if (sidebar) {
+            menuToggle.setAttribute("aria-controls", sidebar.id);
+        }
+
+        menuToggle.addEventListener("click", toggleMobileMenu);
     }
 
+    // Fecha o menu ao escolher uma opção.
+    navLinks.forEach((link) => {
+        link.addEventListener("click", closeMobileMenu);
+    });
+
+    // Fecha ao tocar no fundo escuro.
     if (mobileOverlay) {
         mobileOverlay.addEventListener("click", closeMobileMenu);
     }
 
+    // Fecha com Escape e permite controlar o menu pelo teclado.
     document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") closeMobileMenu();
+        if (event.key === "Escape") {
+            closeMobileMenu();
+        }
     });
+
+    // Fecha o menu se a tela passar para o tamanho de computador.
+    function handleScreenChange() {
+        if (!mobileMedia.matches) {
+            closeMobileMenu();
+        }
+    }
+
+    if (mobileMedia.addEventListener) {
+        mobileMedia.addEventListener("change", handleScreenChange);
+    } else if (mobileMedia.addListener) {
+        mobileMedia.addListener(handleScreenChange);
+    }
 
     updateNavigation();
 
-    // HISTÓRICO
+    // HISTÓRICO DE CONVERSAS
     function makeId() {
         return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     }
 
     function validMessages(messages) {
-        if (!Array.isArray(messages)) return [];
+        if (!Array.isArray(messages)) {
+            return [];
+        }
 
-        return messages.filter((message) =>
-            message &&
-            ["user", "assistant"].includes(message.role) &&
-            typeof message.content === "string" &&
-            message.content.trim().length > 0
-        ).slice(-60);
+        return messages
+            .filter((message) =>
+                message &&
+                ["user", "assistant"].includes(message.role) &&
+                typeof message.content === "string" &&
+                message.content.trim().length > 0
+            )
+            .slice(-MAX_MESSAGES)
+            .map((message) => ({
+                role: message.role,
+                content: message.content
+            }));
     }
 
     function makeTitle(messages) {
@@ -131,7 +195,9 @@ document.addEventListener("DOMContentLoaded", () => {
             (message) => message.role === "user"
         );
 
-        if (!firstQuestion) return "Nova conversa";
+        if (!firstQuestion) {
+            return "Nova conversa";
+        }
 
         const title = firstQuestion.content
             .replace(/\s+/g, " ")
@@ -150,7 +216,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (Array.isArray(saved)) {
                 return saved
-                    .filter((chat) => chat && Array.isArray(chat.messages))
+                    .filter((chat) =>
+                        chat &&
+                        Array.isArray(chat.messages)
+                    )
                     .map((chat) => ({
                         id: String(chat.id || makeId()),
                         title: String(chat.title || "Nova conversa"),
@@ -159,10 +228,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         messages: validMessages(chat.messages)
                     }))
                     .sort((a, b) => b.updatedAt - a.updatedAt)
-                    .slice(0, 50);
+                    .slice(0, MAX_CHATS);
             }
 
-            // Migra a memória da versão anterior sem apagar a conversa.
+            // Migra conversas salvas na versão anterior.
             const oldMessages = JSON.parse(
                 localStorage.getItem(OLD_STORAGE_KEY) || "[]"
             );
@@ -186,7 +255,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 return [migratedChat];
             }
         } catch (error) {
-            console.warn("Não foi possível carregar o histórico.", error);
+            console.warn(
+                "Não foi possível carregar o histórico.",
+                error
+            );
         }
 
         return [];
@@ -198,23 +270,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function saveHistory() {
         history.sort((a, b) => b.updatedAt - a.updatedAt);
-        history = history.slice(0, 50);
+        history = history.slice(0, MAX_CHATS);
 
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(history)
+            );
+
+            return true;
         } catch (error) {
-            console.warn("Não foi possível salvar o histórico.", error);
+            console.warn(
+                "Não foi possível salvar o histórico.",
+                error
+            );
 
             if (tutorStatus) {
                 tutorStatus.classList.add("error");
                 tutorStatus.textContent =
                     "Não foi possível salvar as conversas neste navegador.";
             }
+
+            return false;
         }
     }
 
     function activeChat() {
-        return history.find((chat) => chat.id === activeChatId) || null;
+        return history.find(
+            (chat) => chat.id === activeChatId
+        ) || null;
     }
 
     function createChat() {
@@ -238,11 +322,18 @@ document.addEventListener("DOMContentLoaded", () => {
             tutorStatus.textContent = "Nova conversa pronta.";
         }
 
-        if (tutorInput) tutorInput.focus();
+        // Não abre o teclado virtual automaticamente no celular.
+        if (tutorInput && !mobileMedia.matches) {
+            tutorInput.focus();
+        }
+
+        return chat;
     }
 
     function renderHistory() {
-        if (!historyList) return;
+        if (!historyList) {
+            return;
+        }
 
         historyList.replaceChildren();
 
@@ -253,7 +344,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (sortedHistory.length === 0) {
             const empty = document.createElement("p");
             empty.className = "history-empty";
-            empty.textContent = "Suas conversas aparecerão aqui.";
+            empty.textContent =
+                "Suas conversas aparecerão aqui.";
+
             historyList.append(empty);
             return;
         }
@@ -273,9 +366,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             openButton.addEventListener("click", () => {
-                if (sending) return;
+                if (sending) {
+                    return;
+                }
 
                 activeChatId = chat.id;
+
                 renderHistory();
                 renderChat();
 
@@ -286,6 +382,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (window.location.hash !== "#tutor") {
                     window.location.hash = "tutor";
+                } else {
+                    closeMobileMenu();
                 }
             });
 
@@ -300,15 +398,21 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             deleteButton.addEventListener("click", () => {
-                if (sending) return;
+                if (sending) {
+                    return;
+                }
 
                 const confirmed = window.confirm(
                     `Excluir a conversa "${chat.title}"?`
                 );
 
-                if (!confirmed) return;
+                if (!confirmed) {
+                    return;
+                }
 
-                history = history.filter((entry) => entry.id !== chat.id);
+                history = history.filter(
+                    (entry) => entry.id !== chat.id
+                );
 
                 if (activeChatId === chat.id) {
                     activeChatId = history[0]?.id || null;
@@ -329,13 +433,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // MENSAGENS
+    // MENSAGENS DO TUTOR
     function addChatMessage(role, content) {
-        if (!chatMessages) return null;
+        if (!chatMessages) {
+            return null;
+        }
 
         const article = document.createElement("article");
         article.className =
-            `chat-message ${role === "user" ? "user-message" : "assistant-message"}`;
+            `chat-message ${
+                role === "user" ? "user-message" : "assistant-message"
+            }`;
 
         const avatar = document.createElement("div");
         avatar.className = "message-avatar";
@@ -362,7 +470,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderChat() {
-        if (!chatMessages) return;
+        if (!chatMessages) {
+            return;
+        }
 
         chatMessages.replaceChildren();
 
@@ -373,6 +483,7 @@ document.addEventListener("DOMContentLoaded", () => {
             welcome.className = "history-empty";
             welcome.textContent =
                 "Olá! Sou seu Tutor StudyMind. O que você quer aprender hoje?";
+
             chatMessages.append(welcome);
             return;
         }
@@ -384,7 +495,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function saveActiveChat() {
         const chat = activeChat();
-        if (!chat) return;
+
+        if (!chat) {
+            return;
+        }
 
         chat.title = makeTitle(chat.messages);
         chat.updatedAt = Date.now();
@@ -395,25 +509,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (newChatButton) {
         newChatButton.addEventListener("click", () => {
-            if (sending) return;
+            if (sending) {
+                return;
+            }
 
             createChat();
 
             if (window.location.hash !== "#tutor") {
                 window.location.hash = "tutor";
+            } else {
+                closeMobileMenu();
             }
-
-            closeMobileMenu();
         });
     }
 
-    // MOSTRA A ÚLTIMA CONVERSA AO ABRIR A PÁGINA
-    if (chatMessages) {
-        renderHistory();
-        renderChat();
-    }
+    renderHistory();
+    renderChat();
 
-    // ENVIO PARA O BACKEND
+    // ENVIO DE MENSAGENS AO BACKEND
     if (
         tutorForm &&
         tutorInput &&
@@ -426,20 +539,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const messageText = tutorInput.value.trim();
 
-            if (!messageText || sending) return;
+            if (!messageText || sending) {
+                return;
+            }
 
-            // Cria uma conversa automaticamente quando necessário.
             if (!activeChat()) {
                 createChat();
             }
 
             const chat = activeChat();
-            if (!chat) return;
+
+            if (!chat) {
+                return;
+            }
 
             chat.messages.push({
                 role: "user",
                 content: messageText
             });
+
+            chat.messages = chat.messages.slice(-MAX_MESSAGES);
 
             addChatMessage("user", messageText);
             tutorInput.value = "";
@@ -461,30 +580,40 @@ document.addEventListener("DOMContentLoaded", () => {
             typing?.querySelector("p")?.classList.add("chat-typing");
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/tutor`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        messages: chat.messages.slice(-12)
-                    })
-                });
+                const response = await fetch(
+                    `${API_BASE_URL}/api/tutor`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            messages: chat.messages.slice(-12)
+                        })
+                    }
+                );
 
                 const data = await response.json().catch(() => ({}));
 
                 if (!response.ok) {
                     throw new Error(
-                        data.detail || `O servidor respondeu com erro (${response.status}).`
+                        typeof data.detail === "string"
+                            ? data.detail
+                            : `O servidor respondeu com erro (${response.status}).`
                     );
                 }
 
                 const answer =
-                    data.resposta || "Não recebi uma resposta desta vez.";
+                    typeof data.resposta === "string" &&
+                    data.resposta.trim()
+                        ? data.resposta
+                        : "Não recebi uma resposta desta vez.";
 
-                if (typing) {
-                    typing.querySelector("p").textContent = answer;
-                    typing.querySelector("p").classList.remove("chat-typing");
+                const paragraph = typing?.querySelector("p");
+
+                if (paragraph) {
+                    paragraph.textContent = answer;
+                    paragraph.classList.remove("chat-typing");
                 } else {
                     addChatMessage("assistant", answer);
                 }
@@ -494,23 +623,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     content: answer
                 });
 
+                chat.messages = chat.messages.slice(-MAX_MESSAGES);
+
                 tutorStatus.classList.remove("error");
                 tutorStatus.textContent =
                     "Resposta recebida. Pode perguntar mais!";
-
             } catch (error) {
                 typing?.remove();
 
                 tutorStatus.classList.add("error");
-
-                if (error instanceof TypeError) {
-                    tutorStatus.textContent =
-                        "Não consegui acessar o backend. Verifique sua conexão e tente novamente.";
-                } else {
-                    tutorStatus.textContent = error.message;
-                }
-
-                // A pergunta continua salva para você não perder o que escreveu.
+                tutorStatus.textContent =
+                    error instanceof TypeError
+                        ? "Não consegui acessar o backend. Verifique sua conexão e tente novamente."
+                        : (
+                            error.message ||
+                            "Ocorreu um erro ao consultar o tutor."
+                        );
             } finally {
                 saveActiveChat();
                 renderHistory();
@@ -518,19 +646,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 sending = false;
                 tutorSend.disabled = false;
                 tutorInput.disabled = false;
-                tutorInput.focus();
+
+                // No celular, não reabre o teclado virtual após a resposta.
+                if (
+                    !mobileMedia.matches &&
+                    document.activeElement === tutorInput
+                ) {
+                    tutorInput.focus();
+                }
             }
         });
 
         tutorInput.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
+            // Enter envia no computador; no celular, permite nova linha.
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey &&
+                !mobileMedia.matches
+            ) {
                 event.preventDefault();
                 tutorForm.requestSubmit();
             }
         });
     }
-
-    // PRIMEIRA RENDERIZAÇÃO
-    renderHistory();
-    renderChat();
 });
