@@ -1,253 +1,235 @@
+/* StudyMind — visual inicial */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#101225">
-    <meta name="description" content="StudyMind — seu espaço de aprendizagem.">
-    <title>StudyMind | Seu espaço de aprendizagem</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="app.js" defer></script>
-</head>
-<body>
-<div class="app">
+:root {
+    color-scheme: dark;
+    --bg: #0d0f1d;
+    --sidebar: #111326;
+    --surface: #171a2d;
+    --surface-soft: #1d2036;
+    --border: rgba(184, 177, 255, .12);
+    --text: #f2f1ff;
+    --muted: #a1a4c0;
+    --purple: #a78bfa;
+    --purple-bright: #8b5cf6;
+    --green: #6ee7b7;
+    --orange: #fdba74;
+    --radius: 20px;
+    --sidebar-width: 258px;
+}
 
-    <aside class="sidebar" id="sidebar">
-        <a href="#inicio" class="brand">
-            <span class="brand-icon">S✦</span>
-            <span>
-                <strong>StudyMind</strong>
-                <small>Seu espaço de aprendizagem</small>
-            </span>
-        </a>
+* { box-sizing: border-box; }
+html { min-height: 100%; scroll-behavior: smooth; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 75% -15%, rgba(103, 80, 190, .13), transparent 38%), var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid var(--purple); outline-offset: 4px; }
 
-        <p class="menu-label">ESPAÇO DE ESTUDO</p>
+.app { min-height: 100vh; }
+.sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    width: var(--sidebar-width);
+    padding: 28px 18px 20px;
+    background: rgba(17, 19, 38, .96);
+    border-right: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+}
+.brand { display: flex; align-items: center; gap: 12px; padding: 0 8px; }
+.brand-icon {
+    display: grid;
+    width: 43px;
+    height: 43px;
+    place-items: center;
+    border-radius: 14px;
+    color: white;
+    background: linear-gradient(145deg, #b9a2ff, #7550dc);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, .25);
+    font-family: 'Manrope', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+}
+.brand strong { display: block; font-family: 'Manrope', sans-serif; font-size: 17px; letter-spacing: -.4px; }
+.brand small { display: block; margin-top: 1px; color: var(--muted); font-size: 11px; }
+.menu-label { margin: 39px 10px 12px; color: #777b9e; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; }
+.navigation { display: grid; gap: 6px; }
+.nav-link {
+    display: flex;
+    align-items: center;
+    min-height: 45px;
+    padding: 10px 13px;
+    gap: 11px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: #aeb0ca;
+    font-size: 13px;
+    font-weight: 600;
+    transition: color .2s ease, background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,.045); transform: translateX(2px); }
+.nav-link.active, .nav-link:focus-visible { color: #e8ddff; background: rgba(139, 92, 246, .15); border-color: rgba(167, 139, 250, .18); }
+.sidebar-bottom { margin-top: auto; }
+.motivation-card { padding: 17px; border: 1px solid rgba(167, 139, 250, .18); border-radius: 16px; background: linear-gradient(145deg, rgba(139, 92, 246, .13), rgba(80, 68, 143, .06)); }
+.motivation-icon { color: var(--purple); font-size: 18px; }
+.motivation-card h3 { margin: 8px 0 5px; font-family: 'Manrope', sans-serif; font-size: 13px; }
+.motivation-card p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+.sidebar-footer { margin: 17px 5px 0; color: #6f7393; font-size: 10px; text-align: center; }
 
-        <nav class="navigation" aria-label="Navegação principal">
-            <a href="#inicio" class="nav-link">⌂ Visão geral</a>
-            <a href="#tutor" class="nav-link">✳ Tutor IA</a>
-            <a href="exercicios.html" class="nav-link">▤ Exercícios</a>
-            <a href="calendario.html" class="nav-link">▦ Calendário</a>
-            <a href="materiais.html" class="nav-link">▧ Materiais</a>
-        </nav>
+.main-content { width: min(100% - var(--sidebar-width), 1500px); margin-left: var(--sidebar-width); padding: 0 42px 28px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; min-height: 82px; gap: 18px; border-bottom: 1px solid var(--border); }
+.breadcrumb { display: flex; align-items: center; gap: 10px; color: #8589a8; font-size: 12px; }
+.breadcrumb strong { color: #d9d8ee; font-weight: 600; }
+.profile { display: flex; align-items: center; gap: 15px; color: var(--muted); font-size: 12px; }
+.avatar { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(167,139,250,.3); border-radius: 50%; color: #e6dcff; background: rgba(139,92,246,.16); }
+.menu-toggle { display: none; }
 
-        <div class="chat-history">
-            <button id="new-chat-button" class="new-chat-button" type="button">
-                <span>＋</span> Nova conversa
-            </button>
+/* Navegação por âncoras: mantém uma página visível mesmo antes do JavaScript. */
+.page { display: none; padding-top: 31px; animation: appear .25s ease both; }
+#inicio { display: block; }
+body:has(.page:target) #inicio:not(:target) { display: none; }
+.page:target { display: block; }
+@keyframes appear { from { opacity: .55; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-            <p class="chat-history-title">SUAS CONVERSAS</p>
-            <div id="chat-history-list" class="chat-history-list">
-                <p class="history-empty">Carregando histórico...</p>
-            </div>
-        </div>
+.welcome {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 290px;
+    overflow: hidden;
+    padding: 38px 42px;
+    border: 1px solid rgba(178, 158, 255, .19);
+    border-radius: 24px;
+    background: radial-gradient(circle at 78% 42%, rgba(153, 119, 255, .22), transparent 25%), linear-gradient(115deg, #252044, #211d3b 55%, #292248);
+}
+.welcome::after { position: absolute; right: -90px; bottom: -170px; width: 380px; height: 280px; border: 1px solid rgba(198,183,255,.12); border-radius: 50%; content: ''; transform: rotate(-24deg); }
+.welcome-content { position: relative; z-index: 2; max-width: 590px; }
+.eyebrow { margin: 0 0 10px; color: #b9a3ff; font-size: 10px; font-weight: 700; letter-spacing: 1.7px; }
+h1, h2, h3, p { overflow-wrap: anywhere; }
+h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+.welcome h1 { max-width: 570px; margin: 0; font-size: clamp(27px, 3vw, 39px); line-height: 1.23; letter-spacing: -1.2px; }
+h1 span, .welcome h1 span { color: #bda8ff; }
+.description { max-width: 510px; margin: 15px 0 23px; color: #c0bfd9; font-size: 13px; line-height: 1.8; }
+.primary-button, .secondary-button { display: inline-flex; align-items: center; justify-content: center; gap: 17px; min-height: 43px; padding: 10px 16px; border: 1px solid transparent; border-radius: 11px; font-size: 12px; font-weight: 700; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
+.primary-button { color: white; background: linear-gradient(120deg, #9b7af5, #7951dd); box-shadow: 0 8px 24px rgba(108, 70, 210, .22); }
+.primary-button:hover { transform: translateY(-2px); box-shadow: 0 11px 28px rgba(108, 70, 210, .32); }
+.secondary-button { color: #d8ccff; background: rgba(139,92,246,.1); border-color: rgba(167,139,250,.24); }
+.secondary-button:hover { background: rgba(139,92,246,.2); }
+.welcome-decoration { position: absolute; top: 50%; right: 7%; width: 190px; height: 190px; transform: translateY(-50%); }
+.decoration-orbit { position: absolute; inset: 14px; border: 1px solid rgba(208,194,255,.32); border-radius: 50%; box-shadow: 0 0 55px rgba(165,133,255,.12), inset 0 0 35px rgba(165,133,255,.08); }
+.decoration-orbit::before, .decoration-orbit::after { position: absolute; inset: 19px -10px; border: 1px solid rgba(208,194,255,.22); border-radius: 50%; content: ''; transform: rotate(48deg); }
+.decoration-orbit::after { transform: rotate(-48deg); }
+.decoration-book { position: absolute; inset: 0; display: grid; place-items: center; color: #d9caff; font-size: 75px; text-shadow: 0 0 35px rgba(196,174,255,.45); }
+.decoration-star { position: absolute; color: #e2d8ff; }
+.star-one { top: 4px; right: 23px; font-size: 22px; }
+.star-two { bottom: 10px; left: 7px; font-size: 26px; }
 
-        <div class="sidebar-bottom">
-            <div class="motivation-card">
-                <span class="motivation-icon">✦</span>
-                <h3>Um passo de cada vez.</h3>
-                <p>Você não precisa aprender tudo hoje. Só precisa começar.</p>
-            </div>
-            <p class="sidebar-footer">StudyMind · Em desenvolvimento</p>
-        </div>
-    </aside>
+.stats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; margin-top: 21px; }
+.stat-card, .panel { border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(145deg, rgba(26,29,49,.96), rgba(21,23,40,.96)); }
+.stat-card { min-width: 0; padding: 19px 21px; }
+.stat-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #b3b5cf; font-size: 12px; }
+.stat-icon { display: grid; width: 33px; height: 33px; place-items: center; border-radius: 10px; font-size: 16px; }
+.stat-icon.purple { color: #c6b4ff; background: rgba(139,92,246,.15); }
+.stat-icon.green { color: var(--green); background: rgba(52,211,153,.12); }
+.stat-icon.orange { color: var(--orange); background: rgba(251,146,60,.12); }
+.stat-card h2 { margin: 13px 0 0; font-size: 29px; line-height: 1.2; letter-spacing: -.8px; }
+.stat-card h2 small { color: #a4a6c1; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0; }
+.stat-card > p { margin: 6px 0 0; color: #8589a8; font-size: 11px; }
+.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(260px, .9fr); gap: 18px; margin-top: 21px; }
+.panel { min-width: 0; padding: 23px; }
+.panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
+.panel-heading h2, .panel h2 { margin: 0; font-size: 17px; letter-spacing: -.35px; }
+.panel-heading p { margin: 5px 0 0; color: #9296b3; font-size: 11px; }
+.text-link { flex-shrink: 0; color: #b9a4ff; font-size: 11px; font-weight: 600; }
+.text-link:hover { color: #ded4ff; }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 205px; padding: 20px 8px 8px; text-align: center; }
+.empty-state > span { display: grid; width: 43px; height: 43px; place-items: center; border: 1px solid rgba(167,139,250,.17); border-radius: 14px; color: #b9a4ff; background: rgba(139,92,246,.1); font-size: 21px; }
+.empty-state h3 { margin: 12px 0 4px; font-size: 13px; }
+.empty-state p { max-width: 300px; margin: 0 0 14px; color: #9296b3; font-size: 11px; }
+.tutor-card { position: relative; overflow: hidden; background: radial-gradient(circle at 100% 0%, rgba(139,92,246,.2), transparent 42%), linear-gradient(145deg, #201d3b, #19182c); }
+.tutor-card .eyebrow { max-width: 75%; }
+.tutor-decoration { position: absolute; top: 15px; right: 20px; color: rgba(190,169,255,.18); font-size: 63px; line-height: 1; }
+.tutor-card h2 { position: relative; max-width: 270px; margin: 20px 0 9px; font-size: 21px; line-height: 1.35; }
+.tutor-card > p:not(.eyebrow) { max-width: 300px; margin: 0 0 19px; color: #aaa9c6; font-size: 12px; line-height: 1.8; }
+.upcoming-panel { margin-top: 21px; }
+.empty-state.compact { min-height: 78px; padding-bottom: 0; }
+.empty-state.compact p { margin: 0; }
 
-    <main class="main-content">
-        <header class="topbar">
-            <button class="menu-toggle" id="menu-toggle"
-                    type="button" aria-label="Abrir menu"
-                    aria-expanded="false">☰</button>
+.page-heading { margin: 8px 0 25px; }
+.page-heading h1 { margin: 0; font-size: clamp(28px, 3vw, 38px); letter-spacing: -1px; }
+.page-heading > p:last-child { margin: 9px 0 0; color: var(--muted); font-size: 13px; }
+.placeholder-panel { min-height: 280px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+.placeholder-icon { display: grid; width: 50px; height: 50px; margin-bottom: 18px; place-items: center; border: 1px solid rgba(167,139,250,.22); border-radius: 15px; color: #c7b5ff; background: rgba(139,92,246,.13); font-size: 24px; }
+.placeholder-panel h2 { margin-bottom: 8px; }
+.placeholder-panel p { max-width: 650px; margin: 5px 0; color: #a6a9c4; font-size: 13px; }
+.placeholder-panel .muted { color: #747998; font-size: 11px; }
+.footer { display: flex; justify-content: space-between; gap: 14px; padding: 27px 3px 0; color: #747894; font-size: 10px; }
+.footer > span:first-child { color: #aeb0ca; font-weight: 700; }
+.footer-star { color: var(--purple); }
 
-            <div class="breadcrumb">
-                <span>Seu espaço</span>
-                <span>/</span>
-                <strong>Visão geral</strong>
-            </div>
-
-            <div class="profile">
-                <span id="current-date"></span>
-                <div class="avatar" aria-label="Perfil do estudante">✦</div>
-            </div>
-        </header>
-
-        <section id="inicio" class="page">
-            <div class="welcome">
-                <div class="welcome-content">
-                    <p class="eyebrow">SEU ESPAÇO, SEU RITMO</p>
-                    <h1>Olá! Vamos aprender <span>alguma coisa nova?</span></h1>
-                    <p class="description">
-                        Organize sua rotina, pratique e tire dúvidas com seu tutor
-                        de inteligência artificial.
-                    </p>
-                    <a href="#tutor" class="primary-button">
-                        Começar a estudar <span>→</span>
-                    </a>
-                </div>
-
-                <div class="welcome-decoration" aria-hidden="true">
-                    <div class="decoration-orbit"></div>
-                    <div class="decoration-book">✧</div>
-                    <span class="decoration-star star-one">✦</span>
-                    <span class="decoration-star star-two">✧</span>
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <article class="stat-card">
-                    <div class="stat-heading">
-                        <span>Tempo de estudo</span>
-                        <span class="stat-icon purple">◷</span>
-                    </div>
-                    <h2>0 <small>min</small></h2>
-                    <p>Seu tempo registrado</p>
-                </article>
-
-                <article class="stat-card">
-                    <div class="stat-heading">
-                        <span>Tarefas concluídas</span>
-                        <span class="stat-icon green">✓</span>
-                    </div>
-                    <h2>0</h2>
-                    <p>Uma tarefa de cada vez</p>
-                </article>
-
-                <article class="stat-card">
-                    <div class="stat-heading">
-                        <span>Exercícios feitos</span>
-                        <span class="stat-icon orange">✎</span>
-                    </div>
-                    <h2>0</h2>
-                    <p>Hora de colocar em prática</p>
-                </article>
-            </div>
-
-            <div class="dashboard-grid">
-                <section class="panel">
-                    <div class="panel-heading">
-                        <div>
-                            <h2>Plano de hoje</h2>
-                            <p>Pequenas metas fazem diferença.</p>
-                        </div>
-                        <a href="calendario.html" class="text-link">Ver calendário ↗</a>
-                    </div>
-
-                    <div class="empty-state">
-                        <span>☷</span>
-                        <h3>Nenhuma tarefa por enquanto</h3>
-                        <p>Adicione uma tarefa ao seu calendário para começar.</p>
-                        <a href="calendario.html" class="secondary-button">Criar tarefa</a>
-                    </div>
-                </section>
-
-                <section class="panel tutor-card">
-                    <p class="eyebrow">SEU TUTOR PESSOAL</p>
-                    <div class="tutor-decoration" aria-hidden="true">✳</div>
-                    <h2>Entender vale mais que decorar.</h2>
-                    <p>Faça perguntas, peça exemplos e descubra a matéria no seu ritmo.</p>
-                    <a href="#tutor" class="primary-button">
-                        Conhecer o tutor <span>→</span>
-                    </a>
-                </section>
-            </div>
-
-            <section class="panel upcoming-panel">
-                <div class="panel-heading">
-                    <div>
-                        <h2>Próximos compromissos</h2>
-                        <p>Provas, trabalhos e lembretes.</p>
-                    </div>
-                    <a href="calendario.html" class="text-link">Abrir agenda ↗</a>
-                </div>
-                <div class="empty-state compact">
-                    <p>Seus próximos compromissos aparecerão aqui.</p>
-                </div>
-            </section>
-        </section>
-
-        <section id="tutor" class="page">
-            <div class="page-heading">
-                <p class="eyebrow">APRENDER CONVERSANDO</p>
-                <h1>Seu tutor <span>StudyMind</span></h1>
-                <p>Entenda, pratique e descubra respostas por conta própria.</p>
-            </div>
-
-            <div class="panel tutor-panel">
-                <div class="chat-heading">
-                    <div class="chat-symbol">✳</div>
-                    <div>
-                        <h2>Tutor StudyMind</h2>
-                        <p>Seu espaço de aprendizagem</p>
-                    </div>
-                    <span class="online-indicator">● Disponível</span>
-                </div>
-
-                <div id="chat-messages" class="chat-messages"
-                     role="log" aria-live="polite" aria-label="Mensagens da conversa">
-                </div>
-
-                <p id="tutor-status-message" class="tutor-status"
-                   role="status">Pronto para estudar com você.</p>
-
-                <form id="tutor-form" class="tutor-form">
-                    <textarea id="tutor-input" name="message"
-                              rows="2" maxlength="4000"
-                              placeholder="Pergunte alguma coisa..."
-                              aria-label="Sua mensagem"
-                              required></textarea>
-                    <button id="tutor-send" type="submit" class="send-button">
-                        Enviar <span>➤</span>
-                    </button>
-                </form>
-
-                <p class="chat-tip">Enter para enviar · Shift + Enter para nova linha</p>
-            </div>
-        </section>
-
-
-        <section id="exercicios" class="page">
-            <div class="page-heading">
-                <p class="eyebrow">PRATICAR PARA FIXAR</p>
-                <h1>Hora de <span>praticar</span></h1>
-                <p>Transforme o que estudou em conhecimento.</p>
-            </div>
-
-            <div class="panel placeholder-panel">
-                <span class="placeholder-icon">▤</span>
-                <h2>Seus exercícios estão prontos para começar</h2>
-                <p>
-                    Escolha uma matéria, responda questões e acompanhe
-                    seu desempenho.
-                </p>
-                <a href="exercicios.html" class="primary-button">
-                    Abrir exercícios →
-                </a>
-            </div>
-        </section>
-
-
-        <section id="calendario" class="page">
-            <div class="page-heading">
-                <p class="eyebrow">ORGANIZE SUA ROTINA</p>
-                <h1>Calendário & <span>tarefas</span></h1>
-                <p>Organize provas, trabalhos e sessões de estudo.</p>
-            </div>
-            <div class="panel placeholder-panel">
-                <span class="placeholder-icon">▦</span>
-                <h2>Seu calendário de estudos</h2>
-                <p>Aqui teremos calendário mensal, tarefas, datas de provas e
-                   acompanhamento do que você concluiu.</p>
-                <p class="muted">Funcionalidade em desenvolvimento.</p>
-            </div>
-        </section>
-
-        <footer class="footer">
-            <span>StudyMind <span class="footer-star">✦</span></span>
-            <span>Aprender é um processo, não uma corrida.</span>
-        </footer>
-    </main>
-</div>
-
-<div class="mobile-overlay" id="mobile-overlay"></div>
-</body>
-</html>
+@media (min-width: 1600px) {
+    .main-content { margin-right: auto; }
+}
+@media (max-width: 1150px) {
+    :root { --sidebar-width: 225px; }
+    .main-content { padding-right: 26px; padding-left: 26px; }
+    .welcome { padding: 32px; }
+    .welcome-decoration { right: 3%; transform: translateY(-50%) scale(.8); }
+    .welcome-content { max-width: 68%; }
+    .dashboard-grid { grid-template-columns: minmax(0, 1fr) minmax(240px, .85fr); }
+}
+@media (max-width: 850px) {
+    :root { --sidebar-width: 0px; }
+    .sidebar { width: 270px; max-width: calc(100vw - 45px); transform: translateX(-105%); transition: transform .25s ease; box-shadow: 20px 0 50px rgba(0,0,0,.25); }
+    body.menu-open .sidebar { transform: translateX(0); }
+    body.menu-open::after { position: fixed; z-index: 10; inset: 0; background: rgba(4,5,15,.58); content: ''; }
+    .main-content { width: 100%; margin-left: 0; padding: 0 24px 25px; }
+    .topbar { justify-content: flex-start; min-height: 72px; }
+    .menu-toggle { display: grid; width: 38px; height: 38px; flex-shrink: 0; place-items: center; border: 1px solid var(--border); border-radius: 11px; color: var(--text); background: var(--surface); cursor: pointer; }
+    .breadcrumb { flex: 1; }
+    .profile { gap: 9px; }
+    .welcome-decoration { right: -12px; opacity: .55; transform: translateY(-50%) scale(.72); }
+    .welcome-content { max-width: 78%; }
+}
+@media (max-width: 620px) {
+    .main-content { padding-right: 15px; padding-left: 15px; }
+    .topbar { gap: 11px; min-height: 65px; }
+    .breadcrumb { gap: 6px; font-size: 10px; }
+    .profile { font-size: 0; }
+    .avatar { width: 33px; height: 33px; font-size: 15px; }
+    .page { padding-top: 22px; }
+    .welcome { min-height: 300px; padding: 27px 22px; border-radius: 19px; }
+    .welcome-content { max-width: 100%; }
+    .welcome h1 { max-width: 390px; font-size: 29px; }
+    .description { max-width: 370px; font-size: 12px; }
+    .welcome-decoration { top: auto; right: -50px; bottom: -65px; opacity: .2; transform: scale(.75); }
+    .stats-grid { grid-template-columns: 1fr; gap: 10px; margin-top: 14px; }
+    .stat-card { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 14px 16px; }
+    .stat-heading { display: contents; }
+    .stat-heading > span:first-child { align-self: end; }
+    .stat-icon { grid-column: 2; grid-row: 1 / span 2; }
+    .stat-card h2 { grid-column: 1; grid-row: 2; margin-top: 2px; font-size: 24px; }
+    .stat-card > p { grid-column: 1; grid-row: 3; margin-top: 3px; }
+    .dashboard-grid { grid-template-columns: 1fr; gap: 13px; margin-top: 14px; }
+    .panel { padding: 18px; border-radius: 17px; }
+    .upcoming-panel { margin-top: 14px; }
+    .panel-heading h2, .panel h2 { font-size: 16px; }
+    .text-link { font-size: 10px; }
+    .footer { flex-direction: column; gap: 3px; padding-top: 22px; }
+    .page-heading h1 { font-size: 29px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
