@@ -9,7 +9,6 @@
     <title>StudyMind | Seu espaço de aprendizagem</title>
     <link rel="stylesheet" href="style.css">
     <script src="app.js" defer></script>
-    <script src="progresso.js" defer></script>
 </head>
 <body>
 <div class="app">
@@ -31,7 +30,6 @@
             <a href="exercicios.html" class="nav-link">▤ Exercícios</a>
             <a href="calendario.html" class="nav-link">▦ Calendário</a>
             <a href="#materiais" class="nav-link">▧ Materiais</a>
-            <a href="#progresso" class="nav-link">↗ Meu progresso</a>
         </nav>
 
         <div class="chat-history">
@@ -257,60 +255,7 @@
             </div>
         </section>
 
-        <section id="progresso" class="page">
-            <div class="page-heading">
-                <p class="eyebrow">CADA PASSO CONTA</p>
-                <h1>Seu <span>progresso</span></h1>
-                <p>Veja como você está evoluindo nos exercícios.</p>
-            </div>
 
-            <div class="stats-grid">
-                <article class="stat-card">
-                    <div class="stat-heading"><span>Questões respondidas</span><span class="stat-icon purple">✎</span></div>
-                    <h2 id="progress-answered">0</h2>
-                    <p>Prática acumulada</p>
-                </article>
-                <article class="stat-card">
-                    <div class="stat-heading"><span>Taxa de acertos</span><span class="stat-icon green">✓</span></div>
-                    <h2 id="progress-accuracy">0%</h2>
-                    <p id="progress-correct-count">0 acertos</p>
-                </article>
-                <article class="stat-card">
-                    <div class="stat-heading"><span>Questões erradas</span><span class="stat-icon orange">↗</span></div>
-                    <h2 id="progress-wrong">0</h2>
-                    <p>Oportunidades para revisar</p>
-                </article>
-            </div>
-
-            <div class="dashboard-grid">
-                <section class="panel">
-                    <div class="panel-heading">
-                        <div><h2>Matérias para revisar</h2><p>Onde os erros mais aparecem.</p></div>
-                    </div>
-                    <div id="progress-subjects" class="progress-list">
-                        <p class="muted">Suas estatísticas aparecerão aqui quando houver respostas registradas.</p>
-                    </div>
-                </section>
-                <section class="panel">
-                    <div class="panel-heading">
-                        <div><h2>Últimos erros</h2><p>Questões que merecem outra olhada.</p></div>
-                    </div>
-                    <div id="progress-mistakes" class="progress-list">
-                        <p class="muted">Nenhuma questão errada registrada ainda.</p>
-                    </div>
-                    <a href="exercicios.html" class="primary-button">Praticar exercícios <span>→</span></a>
-                </section>
-            </div>
-
-            <section class="panel upcoming-panel">
-                <div class="panel-heading">
-                    <div><h2>Provas realizadas</h2><p>Resumo dos seus resultados anteriores.</p></div>
-                </div>
-                <div id="progress-exams" class="progress-list">
-                    <p class="muted">Você ainda não tem provas registradas.</p>
-                </div>
-            </section>
-        </section>
 
         <footer class="footer">
             <span>StudyMind <span class="footer-star">✦</span></span>
