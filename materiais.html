@@ -4,7 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Materiais | StudyMind</title>
+
+    <meta name="theme-color" content="#050D24">
+    <meta
+        name="description"
+        content="Organize seus resumos, anotações e arquivos com a Eduvexa."
+    >
+
+    <title>Materiais | Eduvexa</title>
 
     <link rel="stylesheet" href="materiais.css">
     <script src="materiais.js" defer></script>
@@ -15,8 +22,15 @@
         <!-- BARRA LATERAL -->
         <aside class="sidebar">
             <a href="index.html" class="brand">
-                <span class="brand-mark">S</span>
-                <span>StudyMind</span>
+                <img
+                    class="brand-logo"
+                    src="logo-eduvexa.png"
+                    alt="Logo da Eduvexa"
+                    width="40"
+                    height="40"
+                    style="width: 40px; height: 40px; object-fit: contain; flex-shrink: 0;"
+                >
+                <span>Eduvexa</span>
             </a>
 
             <p class="sidebar-label">ESPAÇO DE ESTUDOS</p>
@@ -53,7 +67,7 @@
             </div>
 
             <p class="sidebar-footer">
-                StudyMind · Área de estudos
+                Eduvexa · O futuro aprende com você.
             </p>
         </aside>
 
@@ -236,7 +250,10 @@
                             >
                         </label>
 
-                        <select id="filter-type" aria-label="Filtrar por tipo">
+                        <select
+                            id="filter-type"
+                            aria-label="Filtrar por tipo"
+                        >
                             <option value="todos">Todos os tipos</option>
                             <option value="resumo">Resumos</option>
                             <option value="anotacao">Anotações</option>
@@ -248,7 +265,7 @@
                 <!-- O JavaScript colocará os cartões aqui -->
                 <div id="materials-list" class="materials-grid"></div>
 
-                <!-- Estado vazio -->
+                <!-- ESTADO VAZIO -->
                 <div id="empty-state" class="empty-state">
                     <div class="empty-icon">▧</div>
 
@@ -270,6 +287,7 @@
             </section>
 
             <footer class="page-footer">
+                Eduvexa · O futuro aprende com você.
                 Seus materiais são armazenados localmente neste navegador.
             </footer>
 
