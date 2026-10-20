@@ -1,14 +1,15 @@
+
 :root {
-  --bg: #15121f;
-  --panel: #201b2d;
-  --panel-light: #292239;
-  --border: #39304b;
-  --purple: #a78bfa;
-  --purple-dark: #7c3aed;
-  --text: #f4f0ff;
-  --muted: #aaa0bd;
-  --green: #6ee7b7;
-  --red: #fca5a5;
+  --bg: #050D24;
+  --panel: #0B1733;
+  --panel-light: #122344;
+  --border: #203657;
+  --purple: #42D9F5;
+  --purple-dark: #089FC4;
+  --text: #F2F7FF;
+  --muted: #9BAFCB;
+  --green: #6EE7B7;
+  --red: #FCA5A5;
 }
 
 * {
@@ -19,7 +20,7 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(ellipse at top left, #292044 0%, transparent 42%),
+    radial-gradient(ellipse at top left, #102C4A 0%, transparent 42%),
     var(--bg);
   color: var(--text);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -54,15 +55,22 @@ a {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  padding: 20px max(5%, calc((100% - 1200px) / 2));
+  padding: 16px max(5%, calc((100% - 1200px) / 2));
   border-bottom: 1px solid var(--border);
-  background: rgb(21 18 31 / 85%);
+  background: rgb(5 13 36 / 92%);
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: -0.5px;
+}
+
+.brand img {
+  display: block;
 }
 
 .brand span,
@@ -125,8 +133,8 @@ a {
   padding: 22px;
   border: 1px solid var(--border);
   border-radius: 18px;
-  background: rgb(32 27 45 / 94%);
-  box-shadow: 0 12px 35px rgb(0 0 0 / 12%);
+  background: rgb(11 23 51 / 96%);
+  box-shadow: 0 12px 35px rgb(0 0 0 / 18%);
 }
 
 .panel h2 {
@@ -221,7 +229,7 @@ a {
 }
 
 .day.other-month {
-  color: #716980;
+  color: #7185A3;
 }
 
 .day.today {
@@ -230,7 +238,7 @@ a {
 
 .day.selected {
   background: var(--purple-dark);
-  color: white;
+  color: #FFFFFF;
 }
 
 .day-number {
@@ -258,15 +266,15 @@ a {
 }
 
 .dot.study {
-  background: #a78bfa;
+  background: #42D9F5;
 }
 
 .dot.reminder {
-  background: #fbbf24;
+  background: #FBBF24;
 }
 
 .dot.exam {
-  background: #fb7185;
+  background: #FB7185;
 }
 
 .day.selected .dot {
@@ -312,7 +320,7 @@ form {
 label,
 .filter-label {
   margin-top: 4px;
-  color: #d8cfea;
+  color: #D8E8FA;
   font-size: 0.84rem;
   font-weight: 650;
 }
@@ -326,7 +334,7 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 10px;
   outline: none;
-  background: #181422;
+  background: #07132D;
   color: var(--text);
 }
 
@@ -334,12 +342,12 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--purple);
-  box-shadow: 0 0 0 2px rgb(167 139 250 / 12%);
+  box-shadow: 0 0 0 2px rgb(66 217 245 / 12%);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #756c86;
+  color: #7185A3;
 }
 
 textarea {
@@ -364,8 +372,8 @@ textarea {
   padding: 12px;
   border: 0;
   border-radius: 11px;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-  color: white;
+  background: linear-gradient(135deg, #20C8E8, #087EA8);
+  color: #FFFFFF;
   font-weight: 750;
   transition: filter 0.15s, transform 0.15s;
 }
@@ -405,7 +413,7 @@ textarea {
   place-items: center;
   padding: 0 8px;
   border-radius: 10px;
-  background: #382a55;
+  background: #10344A;
   color: var(--purple);
   font-weight: 800;
 }
@@ -435,15 +443,15 @@ textarea {
   border: 1px solid var(--border);
   border-left: 3px solid var(--purple);
   border-radius: 12px;
-  background: #191523;
+  background: #08152E;
 }
 
 .event-card.type-reminder {
-  border-left-color: #fbbf24;
+  border-left-color: #FBBF24;
 }
 
 .event-card.type-exam {
-  border-left-color: #fb7185;
+  border-left-color: #FB7185;
 }
 
 .event-card.completed {
@@ -514,6 +522,15 @@ textarea {
   text-align: center;
 }
 
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 3px;
+}
+
 @media (max-width: 850px) {
   .calendar-layout {
     grid-template-columns: 1fr;
@@ -537,6 +554,16 @@ textarea {
 
   .topbar {
     padding: 16px 4%;
+  }
+
+  .brand {
+    font-size: 1.15rem;
+    gap: 7px;
+  }
+
+  .brand img {
+    width: 30px !important;
+    height: 30px !important;
   }
 
   .back-link {
