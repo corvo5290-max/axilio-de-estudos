@@ -346,7 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const name = document.createElement("strong");
         name.textContent =
-            role === "user" ? "Você" : "Tutor Eduvexa";
+            role === "user" ? "Você" : "Tutor EduVexa";
 
         const text = document.createElement("p");
         text.textContent = content;
@@ -371,7 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const welcome = document.createElement("p");
             welcome.className = "history-empty";
             welcome.textContent =
-                "Olá! Sou seu Tutor StudyMind. O que você quer aprender hoje?";
+                "Olá! Sou seu Tutor EduVexa. O que você quer aprender hoje?";
             chatMessages.append(welcome);
             return;
         }
