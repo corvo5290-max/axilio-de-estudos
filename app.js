@@ -346,7 +346,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const name = document.createElement("strong");
         name.textContent =
-            role === "user" ? "Você" : "Tutor StudyMind";
+            role === "user" ? "Você" : "Tutor Eduvexa";
 
         const text = document.createElement("p");
         text.textContent = content;
