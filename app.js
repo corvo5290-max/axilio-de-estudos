@@ -1,11 +1,19 @@
 
 document.addEventListener("DOMContentLoaded", () => {
+    // =====================================================
     // CONFIGURAÇÃO
+    // =====================================================
+
     const API_BASE_URL = "https://axilio-de-estudos.onrender.com";
     const STORAGE_KEY = "studymind_tutor_history_v1";
     const OLD_STORAGE_KEY = "studymind_tutor_conversation_v1";
+    const MAX_CHATS = 50;
+    const MAX_MESSAGES = 60;
 
+    // =====================================================
     // ELEMENTOS DA INTERFACE
+    // =====================================================
+
     const dateElement = document.getElementById("current-date");
     const menuToggle = document.getElementById("menu-toggle");
     const mobileOverlay = document.getElementById("mobile-overlay");
@@ -22,6 +30,279 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatMessages = document.getElementById("chat-messages");
     const tutorStatus = document.getElementById("tutor-status-message");
 
+    // =====================================================
+    // VOZ
+    // =====================================================
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    let recognition = null;
+    let isListening = false;
+    let shouldSubmitVoice = false;
+    let voiceBaseText = "";
+    let finalTranscript = "";
+    let currentUtterance = null;
+
+    function speakAnswer(text) {
+        if (!("speechSynthesis" in window) || !text) {
+            voiceHint.textContent =
+                "A leitura em voz alta não está disponível neste navegador.";
+            return;
+        }
+
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        currentUtterance = utterance;
+
+        utterance.lang = "pt-BR";
+        utterance.rate = 1;
+        utterance.pitch = 1;
+
+        utterance.onstart = () => {
+            voiceHint.textContent = "Lendo a resposta em voz alta…";
+        };
+
+        utterance.onend = () => {
+            if (currentUtterance === utterance) {
+                currentUtterance = null;
+                voiceHint.textContent = "Leitura concluída.";
+            }
+        };
+
+        utterance.onerror = (event) => {
+            if (currentUtterance === utterance) {
+                currentUtterance = null;
+
+                if (event.error !== "canceled" &&
+                    event.error !== "interrupted") {
+                    voiceHint.textContent =
+                        "Não foi possível reproduzir a voz.";
+                }
+            }
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function stopSpeaking() {
+        if ("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+        }
+
+        currentUtterance = null;
+    }
+
+    // Cria os controles sem precisar modificar o HTML.
+    const voiceControls = document.createElement("div");
+    voiceControls.className = "tutor-voice-controls";
+
+    const voiceButton = document.createElement("button");
+    voiceButton.type = "button";
+    voiceButton.id = "tutor-voice-button";
+    voiceButton.className = "tutor-voice-button";
+    voiceButton.textContent = "🎙️ Falar";
+    voiceButton.setAttribute("aria-pressed", "false");
+
+    const stopVoiceButton = document.createElement("button");
+    stopVoiceButton.type = "button";
+    stopVoiceButton.id = "tutor-stop-voice-button";
+    stopVoiceButton.className = "tutor-stop-voice-button";
+    stopVoiceButton.textContent = "🔇 Parar áudio";
+
+    const voiceHint = document.createElement("span");
+    voiceHint.className = "tutor-voice-status";
+    voiceHint.setAttribute("role", "status");
+    voiceHint.setAttribute("aria-live", "polite");
+
+    voiceControls.append(
+        voiceButton,
+        stopVoiceButton,
+        voiceHint
+    );
+
+    if (tutorForm && tutorForm.parentElement) {
+        tutorForm.insertAdjacentElement("afterend", voiceControls);
+    } else {
+        voiceButton.disabled = true;
+        stopVoiceButton.disabled = true;
+    }
+
+    function updateVoiceButton() {
+        voiceButton.textContent = isListening
+            ? "⏹️ Parar de ouvir"
+            : "🎙️ Falar";
+
+        voiceButton.setAttribute(
+            "aria-pressed",
+            String(isListening)
+        );
+    }
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+
+        recognition.lang = "pt-BR";
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        recognition.addEventListener("start", () => {
+            isListening = true;
+            updateVoiceButton();
+
+            voiceHint.textContent = "Ouvindo… fale agora.";
+        });
+
+        recognition.addEventListener("result", (event) => {
+            let interimTranscript = "";
+
+            for (let i = event.resultIndex;
+                 i < event.results.length;
+                 i++) {
+                const result = event.results[i];
+                const transcript = result[0].transcript;
+
+                if (result.isFinal) {
+                    finalTranscript += transcript + " ";
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+
+            if (tutorInput) {
+                const recognizedText =
+                    (finalTranscript + interimTranscript).trim();
+
+                tutorInput.value = [
+                    voiceBaseText,
+                    recognizedText
+                ].filter(Boolean).join(" ").trim();
+            }
+
+            if (finalTranscript.trim()) {
+                shouldSubmitVoice = true;
+            }
+        });
+
+        recognition.addEventListener("error", (event) => {
+            shouldSubmitVoice = false;
+
+            const messages = {
+                "not-allowed":
+                    "Permita o acesso ao microfone nas configurações do navegador.",
+                "no-speech":
+                    "Não detectei fala. Tente novamente.",
+                "audio-capture":
+                    "Não encontrei um microfone disponível.",
+                "network":
+                    "O reconhecimento de fala apresentou um erro de rede.",
+                "aborted":
+                    "A gravação foi interrompida."
+            };
+
+            voiceHint.textContent =
+                messages[event.error] ||
+                `Erro no reconhecimento de fala: ${event.error}.`;
+        });
+
+        recognition.addEventListener("end", () => {
+            isListening = false;
+            updateVoiceButton();
+
+            const shouldSend =
+                shouldSubmitVoice &&
+                Boolean(finalTranscript.trim());
+
+            shouldSubmitVoice = false;
+
+            if (shouldSend && tutorInput && tutorForm) {
+                tutorInput.value = [
+                    voiceBaseText,
+                    finalTranscript.trim()
+                ].filter(Boolean).join(" ").trim();
+
+                if (tutorInput.value.trim()) {
+                    voiceHint.textContent =
+                        "Enviando sua pergunta…";
+
+                    tutorForm.requestSubmit();
+                }
+            } else if (
+                voiceHint.textContent === "Ouvindo… fale agora."
+            ) {
+                voiceHint.textContent = "Escuta encerrada.";
+            }
+
+            finalTranscript = "";
+            voiceBaseText = "";
+        });
+    } else {
+        voiceButton.disabled = true;
+        voiceButton.title =
+            "Seu navegador não oferece reconhecimento de fala.";
+
+        voiceHint.textContent =
+            "Reconhecimento de fala indisponível. Tente usar uma versão recente do Chrome.";
+    }
+
+    voiceButton.addEventListener("click", () => {
+        if (!recognition) return;
+
+        if (isListening) {
+            // Ao parar manualmente, envia o que foi reconhecido.
+            shouldSubmitVoice = Boolean(finalTranscript.trim());
+
+            voiceHint.textContent = "Finalizando a gravação…";
+
+            try {
+                recognition.stop();
+            } catch (error) {
+                isListening = false;
+                updateVoiceButton();
+            }
+
+            return;
+        }
+
+        if (sending) {
+            voiceHint.textContent =
+                "Aguarde a resposta atual antes de gravar outra pergunta.";
+            return;
+        }
+
+        stopSpeaking();
+
+        voiceBaseText = "";
+        finalTranscript = "";
+        shouldSubmitVoice = false;
+
+        if (tutorInput) {
+            voiceBaseText = tutorInput.value.trim();
+            tutorInput.value = "";
+        }
+
+        voiceHint.textContent = "Solicitando acesso ao microfone…";
+
+        try {
+            recognition.start();
+        } catch (error) {
+            voiceHint.textContent =
+                "Não foi possível iniciar a gravação. Tente novamente.";
+        }
+    });
+
+    stopVoiceButton.addEventListener("click", () => {
+        stopSpeaking();
+        voiceHint.textContent = "Áudio interrompido.";
+    });
+
+    // =====================================================
+    // NAVEGAÇÃO
+    // =====================================================
+
     const pageNames = {
         inicio: "Visão geral",
         tutor: "Tutor IA",
@@ -31,7 +312,6 @@ document.addEventListener("DOMContentLoaded", () => {
         progresso: "Meu progresso"
     };
 
-    // DATA
     if (dateElement) {
         dateElement.textContent = new Intl.DateTimeFormat("pt-BR", {
             weekday: "short",
@@ -40,12 +320,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }).format(new Date());
     }
 
-    // NAVEGAÇÃO
+    function closeMobileMenu() {
+        document.body.classList.remove("menu-open");
+
+        if (menuToggle) {
+            menuToggle.setAttribute("aria-expanded", "false");
+            menuToggle.setAttribute("aria-label", "Abrir menu");
+        }
+    }
+
     function updateNavigation() {
         const currentId = window.location.hash.slice(1) || "inicio";
 
         navLinks.forEach((link) => {
-            const active = link.getAttribute("href") === `#${currentId}`;
+            const active =
+                link.getAttribute("href") === `#${currentId}`;
+
             link.classList.toggle("active", active);
 
             if (active) {
@@ -70,15 +360,6 @@ document.addEventListener("DOMContentLoaded", () => {
         closeMobileMenu();
     }
 
-    function closeMobileMenu() {
-        document.body.classList.remove("menu-open");
-
-        if (menuToggle) {
-            menuToggle.setAttribute("aria-expanded", "false");
-            menuToggle.setAttribute("aria-label", "Abrir menu");
-        }
-    }
-
     if (
         !window.location.hash ||
         !document.querySelector(window.location.hash)
@@ -90,9 +371,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (menuToggle) {
         menuToggle.addEventListener("click", () => {
-            const isOpen = document.body.classList.toggle("menu-open");
+            const isOpen =
+                document.body.classList.toggle("menu-open");
 
-            menuToggle.setAttribute("aria-expanded", String(isOpen));
+            menuToggle.setAttribute(
+                "aria-expanded",
+                String(isOpen)
+            );
+
             menuToggle.setAttribute(
                 "aria-label",
                 isOpen ? "Fechar menu" : "Abrir menu"
@@ -101,18 +387,27 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (mobileOverlay) {
-        mobileOverlay.addEventListener("click", closeMobileMenu);
+        mobileOverlay.addEventListener(
+            "click",
+            closeMobileMenu
+        );
     }
 
     document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") closeMobileMenu();
+        if (event.key === "Escape") {
+            closeMobileMenu();
+        }
     });
 
     updateNavigation();
 
-    // HISTÓRICO
+    // =====================================================
+    // HISTÓRICO DE CONVERSAS
+    // =====================================================
+
     function makeId() {
-        return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+        return `${Date.now()}-${Math.random()
+            .toString(36).slice(2, 9)}`;
     }
 
     function validMessages(messages) {
@@ -123,7 +418,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ["user", "assistant"].includes(message.role) &&
             typeof message.content === "string" &&
             message.content.trim().length > 0
-        ).slice(-60);
+        ).slice(-MAX_MESSAGES);
     }
 
     function makeTitle(messages) {
@@ -150,19 +445,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (Array.isArray(saved)) {
                 return saved
-                    .filter((chat) => chat && Array.isArray(chat.messages))
+                    .filter((chat) =>
+                        chat && Array.isArray(chat.messages)
+                    )
                     .map((chat) => ({
                         id: String(chat.id || makeId()),
-                        title: String(chat.title || "Nova conversa"),
-                        createdAt: Number(chat.createdAt) || Date.now(),
-                        updatedAt: Number(chat.updatedAt) || Date.now(),
+                        title: String(
+                            chat.title || "Nova conversa"
+                        ),
+                        createdAt:
+                            Number(chat.createdAt) || Date.now(),
+                        updatedAt:
+                            Number(chat.updatedAt) || Date.now(),
                         messages: validMessages(chat.messages)
                     }))
                     .sort((a, b) => b.updatedAt - a.updatedAt)
-                    .slice(0, 50);
+                    .slice(0, MAX_CHATS);
             }
 
-            // Migra a memória da versão anterior sem apagar a conversa.
+            // Migração da versão antiga do histórico.
             const oldMessages = JSON.parse(
                 localStorage.getItem(OLD_STORAGE_KEY) || "[]"
             );
@@ -186,7 +487,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 return [migratedChat];
             }
         } catch (error) {
-            console.warn("Não foi possível carregar o histórico.", error);
+            console.warn(
+                "Não foi possível carregar o histórico.",
+                error
+            );
         }
 
         return [];
@@ -196,186 +500,20 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeChatId = history[0]?.id || null;
     let sending = false;
 
-    // =====================================================
-    // VOZ: RECONHECIMENTO DE FALA E SÍNTESE DO NAVEGADOR
-    // =====================================================
-
-    const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    let recognition = null;
-    let isListening = false;
-    let submitRecognizedSpeech = false;
-
-    function speakAnswer(text) {
-        if (!("speechSynthesis" in window) || !text) return;
-
-        window.speechSynthesis.cancel();
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "pt-BR";
-        utterance.rate = 1;
-        utterance.pitch = 1;
-
-        window.speechSynthesis.speak(utterance);
-    }
-
-    function stopSpeaking() {
-        if ("speechSynthesis" in window) {
-            window.speechSynthesis.cancel();
-        }
-    }
-
-    // Criar os controles de voz sem modificar o HTML original.
-    const voiceControls = document.createElement("div");
-
-    voiceControls.style.cssText =
-        "display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;";
-
-    const voiceButton = document.createElement("button");
-    voiceButton.type = "button";
-    voiceButton.textContent = "🎙️ Falar";
-    voiceButton.setAttribute("aria-label", "Iniciar reconhecimento de voz");
-
-    voiceButton.style.cssText =
-        "padding:10px 14px;border-radius:10px;border:1px solid #7861a8;background:#302348;color:white;cursor:pointer;font:inherit;";
-
-    const stopVoiceButton = document.createElement("button");
-    stopVoiceButton.type = "button";
-    stopVoiceButton.textContent = "🔇 Parar áudio";
-    stopVoiceButton.setAttribute("aria-label", "Interromper áudio");
-
-    stopVoiceButton.style.cssText =
-        "padding:10px 14px;border-radius:10px;border:1px solid #7861a8;background:transparent;color:inherit;cursor:pointer;font:inherit;";
-
-    const voiceStatus = document.createElement("span");
-    voiceStatus.setAttribute("role", "status");
-    voiceStatus.setAttribute("aria-live", "polite");
-
-    voiceControls.append(voiceButton, stopVoiceButton, voiceStatus);
-
-    if (tutorForm) {
-        tutorForm.insertAdjacentElement("afterend", voiceControls);
-    }
-
-    // Configurar o reconhecimento de voz em português brasileiro.
-    if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = "pt-BR";
-        recognition.continuous = false;
-        recognition.interimResults = false;
-
-        recognition.onstart = () => {
-            isListening = true;
-            voiceButton.textContent = "⏹️ Parar de ouvir";
-            voiceButton.setAttribute("aria-label", "Parar reconhecimento de voz");
-            voiceStatus.textContent = "Ouvindo… fale agora.";
-        };
-
-        recognition.onresult = (event) => {
-            const transcript =
-                event.results?.[0]?.[0]?.transcript?.trim();
-
-            if (transcript && tutorInput) {
-                tutorInput.value = transcript;
-                submitRecognizedSpeech = true;
-                voiceStatus.textContent = `Reconhecido: ${transcript}`;
-            }
-        };
-
-        recognition.onerror = (event) => {
-            submitRecognizedSpeech = false;
-
-            const messages = {
-                "not-allowed":
-                    "Permita o acesso ao microfone nas configurações do navegador.",
-                "no-speech":
-                    "Não ouvi nada. Clique no microfone e tente novamente.",
-                "audio-capture":
-                    "Não encontrei um microfone disponível.",
-                "network":
-                    "O reconhecimento de fala teve um erro de rede."
-            };
-
-            voiceStatus.textContent =
-                messages[event.error] ||
-                "Não foi possível reconhecer a fala. Tente novamente.";
-        };
-
-        recognition.onend = () => {
-            isListening = false;
-            voiceButton.textContent = "🎙️ Falar";
-            voiceButton.setAttribute(
-                "aria-label",
-                "Iniciar reconhecimento de voz"
-            );
-
-            if (submitRecognizedSpeech && tutorInput?.value.trim()) {
-                submitRecognizedSpeech = false;
-                voiceStatus.textContent = "Enviando sua pergunta ao tutor…";
-
-                if (tutorForm) {
-                    tutorForm.requestSubmit();
-                }
-            } else if (
-                !voiceStatus.textContent.startsWith("Não ") &&
-                !voiceStatus.textContent.startsWith("Permita") &&
-                !voiceStatus.textContent.startsWith("O reconhecimento")
-            ) {
-                voiceStatus.textContent = "Escuta encerrada.";
-            }
-        };
-    } else {
-        voiceButton.disabled = true;
-        voiceButton.title =
-            "Este navegador não oferece reconhecimento de fala compatível.";
-
-        voiceStatus.textContent =
-            "Reconhecimento de fala indisponível. Você ainda pode digitar normalmente.";
-    }
-
-    // Iniciar ou interromper a escuta.
-    voiceButton.addEventListener("click", () => {
-        if (!recognition) return;
-
-        if (isListening) {
-            submitRecognizedSpeech = false;
-            recognition.stop();
-            voiceStatus.textContent = "Parando o microfone…";
-            return;
-        }
-
-        stopSpeaking();
-        submitRecognizedSpeech = false;
-
-        if (tutorInput) {
-            tutorInput.value = "";
-        }
-
-        try {
-            voiceStatus.textContent = "Solicitando acesso ao microfone…";
-            recognition.start();
-        } catch (error) {
-            voiceStatus.textContent =
-                "O microfone já está iniciando. Aguarde e tente novamente.";
-        }
-    });
-
-    // Interromper a fala da resposta.
-    stopVoiceButton.addEventListener("click", () => {
-        stopSpeaking();
-        voiceStatus.textContent = "Áudio interrompido.";
-    });
-
-    // SALVAR HISTÓRICO
     function saveHistory() {
         history.sort((a, b) => b.updatedAt - a.updatedAt);
-        history = history.slice(0, 50);
+        history = history.slice(0, MAX_CHATS);
 
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(history)
+            );
         } catch (error) {
-            console.warn("Não foi possível salvar o histórico.", error);
+            console.warn(
+                "Não foi possível salvar o histórico.",
+                error
+            );
 
             if (tutorStatus) {
                 tutorStatus.classList.add("error");
@@ -386,7 +524,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function activeChat() {
-        return history.find((chat) => chat.id === activeChatId) || null;
+        return history.find(
+            (chat) => chat.id === activeChatId
+        ) || null;
     }
 
     function createChat() {
@@ -425,7 +565,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (sortedHistory.length === 0) {
             const empty = document.createElement("p");
             empty.className = "history-empty";
-            empty.textContent = "Suas conversas aparecerão aqui.";
+            empty.textContent =
+                "Suas conversas aparecerão aqui.";
+
             historyList.append(empty);
             return;
         }
@@ -448,6 +590,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (sending) return;
 
                 activeChatId = chat.id;
+
                 renderHistory();
                 renderChat();
 
@@ -480,7 +623,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!confirmed) return;
 
-                history = history.filter((entry) => entry.id !== chat.id);
+                history = history.filter(
+                    (entry) => entry.id !== chat.id
+                );
 
                 if (activeChatId === chat.id) {
                     activeChatId = history[0]?.id || null;
@@ -492,7 +637,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (tutorStatus) {
                     tutorStatus.classList.remove("error");
-                    tutorStatus.textContent = "Histórico atualizado.";
+                    tutorStatus.textContent =
+                        "Histórico atualizado.";
                 }
             });
 
@@ -501,13 +647,21 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // MENSAGENS
+    // =====================================================
+    // MENSAGENS DO CHAT
+    // =====================================================
+
     function addChatMessage(role, content) {
         if (!chatMessages) return null;
 
         const article = document.createElement("article");
+
         article.className =
-            `chat-message ${role === "user" ? "user-message" : "assistant-message"}`;
+            `chat-message ${
+                role === "user"
+                    ? "user-message"
+                    : "assistant-message"
+            }`;
 
         const avatar = document.createElement("div");
         avatar.className = "message-avatar";
@@ -545,6 +699,7 @@ document.addEventListener("DOMContentLoaded", () => {
             welcome.className = "history-empty";
             welcome.textContent =
                 "Olá! Sou seu Tutor EduVexa. O que você quer aprender hoje?";
+
             chatMessages.append(welcome);
             return;
         }
@@ -579,13 +734,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // MOSTRA A ÚLTIMA CONVERSA AO ABRIR A PÁGINA
-    if (chatMessages) {
-        renderHistory();
-        renderChat();
-    }
+    // =====================================================
+    // ENVIAR PERGUNTA PARA A API
+    // =====================================================
 
-    // ENVIO PARA O BACKEND
     if (
         tutorForm &&
         tutorInput &&
@@ -600,7 +752,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!messageText || sending) return;
 
-            // Cria uma conversa automaticamente quando necessário.
+            stopSpeaking();
+
             if (!activeChat()) {
                 createChat();
             }
@@ -613,6 +766,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 content: messageText
             });
 
+            // Mantém o tamanho do histórico limitado.
+            chat.messages = chat.messages.slice(-MAX_MESSAGES);
+
             addChatMessage("user", messageText);
             tutorInput.value = "";
 
@@ -620,28 +776,34 @@ document.addEventListener("DOMContentLoaded", () => {
             tutorSend.disabled = true;
             tutorInput.disabled = true;
 
+            voiceButton.disabled = true;
+
             tutorStatus.classList.remove("error");
-            tutorStatus.textContent = "O tutor está pensando...";
+            tutorStatus.textContent = "O tutor está pensando…";
+            voiceHint.textContent = "Aguardando a resposta…";
 
             saveActiveChat();
 
             const typing = addChatMessage(
                 "assistant",
-                "Estou preparando uma explicação..."
+                "Estou preparando uma explicação…"
             );
 
             typing?.querySelector("p")?.classList.add("chat-typing");
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/tutor`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        messages: chat.messages.slice(-12)
-                    })
-                });
+                const response = await fetch(
+                    `${API_BASE_URL}/api/tutor`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            messages: chat.messages.slice(-12)
+                        })
+                    }
+                );
 
                 const data = await response.json().catch(() => ({}));
 
@@ -653,14 +815,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 const answer =
-                    data.resposta || "Não recebi uma resposta desta vez.";
-
-                // Lê a resposta em voz alta usando o navegador.
-                speakAnswer(answer);
+                    typeof data.resposta === "string" &&
+                    data.resposta.trim()
+                        ? data.resposta.trim()
+                        : "Não recebi uma resposta desta vez.";
 
                 if (typing) {
-                    typing.querySelector("p").textContent = answer;
-                    typing.querySelector("p").classList.remove("chat-typing");
+                    const paragraph = typing.querySelector("p");
+
+                    if (paragraph) {
+                        paragraph.textContent = answer;
+                        paragraph.classList.remove("chat-typing");
+                    }
                 } else {
                     addChatMessage("assistant", answer);
                 }
@@ -670,9 +836,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     content: answer
                 });
 
+                chat.messages = chat.messages.slice(-MAX_MESSAGES);
+
                 tutorStatus.classList.remove("error");
                 tutorStatus.textContent =
                     "Resposta recebida. Pode perguntar mais!";
+
+                // Lê a resposta usando a voz disponível no navegador.
+                speakAnswer(answer);
 
             } catch (error) {
                 typing?.remove();
@@ -683,10 +854,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     tutorStatus.textContent =
                         "Não consegui acessar o backend. Verifique sua conexão e tente novamente.";
                 } else {
-                    tutorStatus.textContent = error.message;
+                    tutorStatus.textContent =
+                        error.message || "Ocorreu um erro inesperado.";
                 }
 
-                // A pergunta continua salva para você não perder o que escreveu.
+                voiceHint.textContent =
+                    "A pergunta não recebeu resposta. Você pode tentar novamente.";
+
             } finally {
                 saveActiveChat();
                 renderHistory();
@@ -694,19 +868,28 @@ document.addEventListener("DOMContentLoaded", () => {
                 sending = false;
                 tutorSend.disabled = false;
                 tutorInput.disabled = false;
+                voiceButton.disabled = !recognition;
+
                 tutorInput.focus();
             }
         });
 
         tutorInput.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey &&
+                !event.isComposing
+            ) {
                 event.preventDefault();
                 tutorForm.requestSubmit();
             }
         });
     }
 
-    // PRIMEIRA RENDERIZAÇÃO
+    // =====================================================
+    // INICIALIZAÇÃO
+    // =====================================================
+
     renderHistory();
     renderChat();
 });
