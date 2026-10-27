@@ -44,13 +44,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!Array.isArray(messages)) return [];
 
         return messages
-            .filter(message =>
+            .filter((message) =>
                 message &&
                 ["user", "assistant"].includes(message.role) &&
                 typeof message.content === "string" &&
                 message.content.trim().length > 0
             )
-            .map(message => ({
+            .map((message) => ({
                 role: message.role,
                 content: message.content.trim()
             }))
@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function makeTitle(messages) {
         const firstQuestion = messages.find(
-            message => message.role === "user"
+            (message) => message.role === "user"
         );
 
         if (!firstQuestion) return "Nova conversa";
@@ -81,20 +81,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =====================================================
-    // SISTEMA DE VOZ
+    // VOZ: SÍNTESE E RECONHECIMENTO
     // =====================================================
 
     const SpeechRecognition =
         window.SpeechRecognition ||
         window.webkitSpeechRecognition;
 
-    const canSpeak =
-        "speechSynthesis" in window &&
+    const canSpeak = "speechSynthesis" in window &&
         typeof window.SpeechSynthesisUtterance !== "undefined";
-
-    const isFirefox =
-        /Firefox\//.test(navigator.userAgent) &&
-        !/Seamonkey\//.test(navigator.userAgent);
 
     let recognition = null;
     let isListening = false;
@@ -104,12 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let finalTranscript = "";
     let currentUtterance = null;
     let sending = false;
-    let voiceSession = 0;
 
-    // -----------------------------------------------------
-    // CONTROLES DE VOZ
-    // -----------------------------------------------------
-
+    // Os controles são criados por JavaScript.
     const voiceControls = document.createElement("div");
     voiceControls.className = "tutor-voice-controls";
 
@@ -137,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
         voiceHint
     );
 
-    if (tutorForm?.parentElement) {
+    if (tutorForm && tutorForm.parentElement) {
         tutorForm.insertAdjacentElement("afterend", voiceControls);
     } else {
         voiceButton.disabled = true;
@@ -157,80 +148,22 @@ document.addEventListener("DOMContentLoaded", () => {
         voiceButton.disabled =
             !recognition || sending || recognitionStarting;
 
-        stopVoiceButton.disabled = !canSpeak;
+        stopVoiceButton.disabled = !canSpeak && !currentUtterance;
     }
 
     function stopSpeaking() {
-        voiceSession++;
-
         if (canSpeak) {
             window.speechSynthesis.cancel();
         }
 
         currentUtterance = null;
-        voiceHint.textContent = "Áudio interrompido.";
+
+        if (!isListening && !sending) {
+            voiceHint.textContent = "Áudio interrompido.";
+        }
 
         updateVoiceButton();
     }
-
-    // -----------------------------------------------------
-    // SELEÇÃO DE VOZ
-    // -----------------------------------------------------
-
-    function getPortugueseVoice() {
-        if (!canSpeak) return null;
-
-        const voices = window.speechSynthesis.getVoices();
-
-        if (!voices.length) return null;
-
-        const isPortugueseBR = voice =>
-            /^pt[-_]BR$/i.test(voice.lang);
-
-        const isPortuguese = voice =>
-            /^pt([-_]|$)/i.test(voice.lang);
-
-        if (isFirefox) {
-            // Firefox: tenta encontrar uma voz brasileira
-            // que não seja eSpeak, caso exista no sistema.
-            const alternatives = voices.filter(voice =>
-                isPortugueseBR(voice) &&
-                !/espeak/i.test(voice.name)
-            );
-
-            if (alternatives.length) {
-                return alternatives[0];
-            }
-
-            const portugalAlternatives = voices.filter(voice =>
-                /^pt[-_]PT$/i.test(voice.lang) &&
-                !/espeak/i.test(voice.name)
-            );
-
-            if (portugalAlternatives.length) {
-                return portugalAlternatives[0];
-            }
-
-            // Se não houver alternativa, usa a melhor opção
-            // em português que o navegador disponibilizar.
-            return (
-                voices.find(isPortugueseBR) ||
-                voices.find(isPortuguese) ||
-                null
-            );
-        }
-
-        // Chrome: mantém a prioridade anterior.
-        return (
-            voices.find(isPortugueseBR) ||
-            voices.find(isPortuguese) ||
-            null
-        );
-    }
-
-    // -----------------------------------------------------
-    // LEITURA DAS RESPOSTAS
-    // -----------------------------------------------------
 
     function speakAnswer(text) {
         if (!canSpeak || !text) {
@@ -239,128 +172,49 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const synth = window.speechSynthesis;
-        const session = ++voiceSession;
-
-        synth.cancel();
+        window.speechSynthesis.cancel();
         currentUtterance = null;
 
-        // Evita ler blocos de código e URLs extensas.
-        const cleanText = String(text)
-            .replace(/```[\s\S]*?```/g, " Bloco de código omitido. ")
-            .replace(/https?:\/\/\S+/gi, " link ")
-            .replace(/[#*_`~]/g, "")
-            .replace(/\s+/g, " ")
-            .trim();
+        const utterance = new SpeechSynthesisUtterance(text);
+        currentUtterance = utterance;
 
-        if (!cleanText) return;
+        utterance.lang = "pt-BR";
+        utterance.rate = 1;
+        utterance.pitch = 1;
 
-        const voice = getPortugueseVoice();
-
-        // Divide respostas longas em partes menores para
-        // reduzir problemas de reprodução em alguns navegadores.
-        const sentences =
-            cleanText.match(/[^.!?;]+[.!?;]*/g) || [cleanText];
-
-        const chunks = [];
-        let chunk = "";
-
-        for (const sentence of sentences) {
-            const part = sentence.trim();
-            if (!part) continue;
-
-            if (
-                chunk &&
-                (chunk + " " + part).length > 220
-            ) {
-                chunks.push(chunk.trim());
-                chunk = part;
-            } else {
-                chunk = `${chunk} ${part}`.trim();
+        utterance.onstart = () => {
+            if (currentUtterance === utterance) {
+                voiceHint.textContent =
+                    "Lendo a resposta em voz alta…";
             }
-        }
+        };
 
-        if (chunk) chunks.push(chunk);
-
-        let index = 0;
-
-        voiceHint.textContent = voice
-            ? `Preparando voz: ${voice.name}…`
-            : "Preparando a voz padrão do navegador…";
-
-        function speakNextChunk() {
-            if (session !== voiceSession) return;
-
-            if (index >= chunks.length) {
+        utterance.onend = () => {
+            if (currentUtterance === utterance) {
                 currentUtterance = null;
                 voiceHint.textContent = "Leitura concluída.";
                 updateVoiceButton();
-                return;
+            }
+        };
+
+        utterance.onerror = (event) => {
+            if (currentUtterance !== utterance) return;
+
+            currentUtterance = null;
+
+            if (
+                event.error !== "canceled" &&
+                event.error !== "interrupted"
+            ) {
+                voiceHint.textContent =
+                    "Não foi possível reproduzir a voz.";
             }
 
-            const utterance =
-                new SpeechSynthesisUtterance(chunks[index]);
+            updateVoiceButton();
+        };
 
-            currentUtterance = utterance;
-
-            utterance.lang = voice?.lang || "pt-BR";
-            utterance.rate = isFirefox ? 0.95 : 1;
-            utterance.pitch = 1;
-            utterance.volume = 1;
-
-            if (voice) {
-                utterance.voice = voice;
-            }
-
-            utterance.onstart = () => {
-                if (session !== voiceSession) return;
-
-                voiceHint.textContent = voice
-                    ? `Lendo com ${voice.name} (${voice.lang})…`
-                    : "Lendo a resposta em voz alta…";
-            };
-
-            utterance.onend = () => {
-                if (session !== voiceSession) return;
-
-                index++;
-                speakNextChunk();
-            };
-
-            utterance.onerror = event => {
-                if (session !== voiceSession) return;
-
-                currentUtterance = null;
-
-                if (
-                    event.error !== "canceled" &&
-                    event.error !== "interrupted"
-                ) {
-                    voiceHint.textContent =
-                        "Não foi possível reproduzir a voz.";
-                }
-
-                updateVoiceButton();
-            };
-
-            synth.speak(utterance);
-        }
-
-        speakNextChunk();
+        window.speechSynthesis.speak(utterance);
         updateVoiceButton();
-    }
-
-    // Alguns navegadores carregam a lista de vozes
-    // de forma assíncrona.
-    if (canSpeak) {
-        window.speechSynthesis.getVoices();
-
-        window.speechSynthesis.addEventListener(
-            "voiceschanged",
-            () => {
-                // A lista será consultada novamente ao falar.
-            }
-        );
     }
 
     function resetVoiceTranscript() {
@@ -389,30 +243,28 @@ document.addEventListener("DOMContentLoaded", () => {
             voiceHint.textContent = "Ouvindo… fale agora.";
         });
 
-        recognition.addEventListener("result", event => {
-            // Reconstrói a transcrição a partir dos resultados
-            // atuais para evitar duplicar trechos finais.
-            const finalParts = [];
-            const interimParts = [];
+        recognition.addEventListener("result", (event) => {
+            let interimTranscript = "";
 
-            for (let i = 0; i < event.results.length; i++) {
+            for (
+                let i = event.resultIndex;
+                i < event.results.length;
+                i++
+            ) {
                 const result = event.results[i];
-                const transcript = result[0]?.transcript?.trim();
-
-                if (!transcript) continue;
+                const transcript = result[0]?.transcript || "";
 
                 if (result.isFinal) {
-                    finalParts.push(transcript);
+                    // Guarda somente resultados finais novos.
+                    finalTranscript += `${transcript} `;
                 } else {
-                    interimParts.push(transcript);
+                    interimTranscript += `${transcript} `;
                 }
             }
 
-            finalTranscript = finalParts.join(" ");
-
             const recognizedText = [
-                finalTranscript,
-                interimParts.join(" ")
+                finalTranscript.trim(),
+                interimTranscript.trim()
             ].filter(Boolean).join(" ").trim();
 
             if (tutorInput) {
@@ -422,17 +274,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 ].filter(Boolean).join(" ").trim();
             }
 
-            shouldSubmitVoice = Boolean(finalTranscript);
+            if (finalTranscript.trim()) {
+                shouldSubmitVoice = true;
+            }
         });
 
-        recognition.addEventListener("error", event => {
+        recognition.addEventListener("error", (event) => {
             recognitionStarting = false;
 
             const messages = {
                 "not-allowed":
                     "Permita o acesso ao microfone nas configurações do navegador.",
                 "service-not-allowed":
-                    "O navegador bloqueou o reconhecimento de fala.",
+                    "O navegador bloqueou o serviço de reconhecimento de fala.",
                 "no-speech":
                     "Não detectei fala. Tente novamente.",
                 "audio-capture":
@@ -450,10 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (
                 event.error === "not-allowed" ||
                 event.error === "service-not-allowed" ||
-                event.error === "audio-capture" ||
-                event.error === "no-speech" ||
-                event.error === "network" ||
-                event.error === "aborted"
+                event.error === "audio-capture"
             ) {
                 shouldSubmitVoice = false;
             }
@@ -480,7 +331,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 ].filter(Boolean).join(" ").trim();
 
                 if (tutorInput.value.trim()) {
-                    voiceHint.textContent = "Enviando sua pergunta…";
+                    voiceHint.textContent =
+                        "Enviando sua pergunta…";
+
                     tutorForm.requestSubmit();
                 }
             } else if (
@@ -501,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "Este navegador não oferece reconhecimento de fala.";
 
         voiceHint.textContent =
-            "Microfone indisponível neste navegador. Você ainda pode digitar e ouvir as respostas.";
+            "Microfone indisponível neste navegador. Você ainda pode digitar e ouvir as respostas, se a síntese de voz estiver disponível.";
     }
 
     voiceButton.addEventListener("click", () => {
@@ -583,10 +436,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateNavigation() {
-        const currentId =
-            window.location.hash.slice(1) || "inicio";
+        const currentId = window.location.hash.slice(1) || "inicio";
 
-        navLinks.forEach(link => {
+        navLinks.forEach((link) => {
             const active =
                 link.getAttribute("href") === `#${currentId}`;
 
@@ -599,7 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        pages.forEach(page => {
+        pages.forEach((page) => {
             page.setAttribute(
                 "aria-hidden",
                 String(page.id !== currentId)
@@ -632,7 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("hashchange", updateNavigation);
 
-    navLinks.forEach(link => {
+    navLinks.forEach((link) => {
         link.addEventListener("click", closeMobileMenu);
     });
 
@@ -653,9 +505,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    mobileOverlay?.addEventListener("click", closeMobileMenu);
+    if (mobileOverlay) {
+        mobileOverlay.addEventListener("click", closeMobileMenu);
+    }
 
-    document.addEventListener("keydown", event => {
+    document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             closeMobileMenu();
         }
@@ -675,20 +529,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (Array.isArray(saved)) {
                 return saved
-                    .filter(chat =>
+                    .filter((chat) =>
                         chat && Array.isArray(chat.messages)
                     )
-                    .map(chat => ({
+                    .map((chat) => ({
                         id: String(chat.id || makeId()),
-                        title: String(chat.title || "Nova conversa"),
-                        createdAt: Number(chat.createdAt) || Date.now(),
-                        updatedAt: Number(chat.updatedAt) || Date.now(),
+                        title: String(
+                            chat.title || "Nova conversa"
+                        ),
+                        createdAt:
+                            Number(chat.createdAt) || Date.now(),
+                        updatedAt:
+                            Number(chat.updatedAt) || Date.now(),
                         messages: validMessages(chat.messages)
                     }))
                     .sort((a, b) => b.updatedAt - a.updatedAt)
                     .slice(0, MAX_CHATS);
             }
 
+            // Migra a conversa única da versão anterior.
             const oldMessages = JSON.parse(
                 localStorage.getItem(OLD_STORAGE_KEY) || "[]"
             );
@@ -748,7 +607,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function activeChat() {
         return history.find(
-            chat => chat.id === activeChatId
+            (chat) => chat.id === activeChatId
         ) || null;
     }
 
@@ -769,7 +628,8 @@ document.addEventListener("DOMContentLoaded", () => {
         renderChat();
 
         setStatus("Nova conversa pronta.");
-        tutorInput?.focus();
+
+        if (tutorInput) tutorInput.focus();
 
         return chat;
     }
@@ -793,7 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        sortedHistory.forEach(chat => {
+        sortedHistory.forEach((chat) => {
             const item = document.createElement("div");
             item.className = "history-item";
 
@@ -834,14 +694,14 @@ document.addEventListener("DOMContentLoaded", () => {
             deleteButton.addEventListener("click", () => {
                 if (sending) return;
 
-                if (!window.confirm(
+                const confirmed = window.confirm(
                     `Excluir a conversa "${chat.title}"?`
-                )) {
-                    return;
-                }
+                );
+
+                if (!confirmed) return;
 
                 history = history.filter(
-                    entry => entry.id !== chat.id
+                    (entry) => entry.id !== chat.id
                 );
 
                 if (activeChatId === chat.id) {
@@ -929,7 +789,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        chat.messages.forEach(message => {
+        chat.messages.forEach((message) => {
             addChatMessage(message.role, message.content);
         });
     }
@@ -945,17 +805,19 @@ document.addEventListener("DOMContentLoaded", () => {
         renderHistory();
     }
 
-    newChatButton?.addEventListener("click", () => {
-        if (sending) return;
+    if (newChatButton) {
+        newChatButton.addEventListener("click", () => {
+            if (sending) return;
 
-        createChat();
+            createChat();
 
-        if (window.location.hash !== "#tutor") {
-            window.location.hash = "tutor";
-        }
+            if (window.location.hash !== "#tutor") {
+                window.location.hash = "tutor";
+            }
 
-        closeMobileMenu();
-    });
+            closeMobileMenu();
+        });
+    }
 
     // =====================================================
     // ENVIO DE PERGUNTAS PARA O BACKEND
@@ -968,7 +830,7 @@ document.addEventListener("DOMContentLoaded", () => {
         chatMessages &&
         tutorStatus
     ) {
-        tutorForm.addEventListener("submit", async event => {
+        tutorForm.addEventListener("submit", async (event) => {
             event.preventDefault();
 
             const messageText = tutorInput.value.trim();
@@ -1060,7 +922,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 setStatus("Resposta recebida. Pode perguntar mais!");
 
-                // A voz selecionada depende do navegador.
                 speakAnswer(answer);
 
             } catch (error) {
@@ -1084,11 +945,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 tutorInput.disabled = false;
 
                 updateVoiceButton();
+
                 tutorInput.focus();
             }
         });
 
-        tutorInput.addEventListener("keydown", event => {
+        tutorInput.addEventListener("keydown", (event) => {
             if (
                 event.key === "Enter" &&
                 !event.shiftKey &&
