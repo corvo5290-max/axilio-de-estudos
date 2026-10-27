@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", () => {
     // CONFIGURAÇÃO
     const API_BASE_URL = "https://axilio-de-estudos.onrender.com";
@@ -195,6 +196,178 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeChatId = history[0]?.id || null;
     let sending = false;
 
+    // =====================================================
+    // VOZ: RECONHECIMENTO DE FALA E SÍNTESE DO NAVEGADOR
+    // =====================================================
+
+    const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    let recognition = null;
+    let isListening = false;
+    let submitRecognizedSpeech = false;
+
+    function speakAnswer(text) {
+        if (!("speechSynthesis" in window) || !text) return;
+
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "pt-BR";
+        utterance.rate = 1;
+        utterance.pitch = 1;
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function stopSpeaking() {
+        if ("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+        }
+    }
+
+    // Criar os controles de voz sem modificar o HTML original.
+    const voiceControls = document.createElement("div");
+
+    voiceControls.style.cssText =
+        "display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;";
+
+    const voiceButton = document.createElement("button");
+    voiceButton.type = "button";
+    voiceButton.textContent = "🎙️ Falar";
+    voiceButton.setAttribute("aria-label", "Iniciar reconhecimento de voz");
+
+    voiceButton.style.cssText =
+        "padding:10px 14px;border-radius:10px;border:1px solid #7861a8;background:#302348;color:white;cursor:pointer;font:inherit;";
+
+    const stopVoiceButton = document.createElement("button");
+    stopVoiceButton.type = "button";
+    stopVoiceButton.textContent = "🔇 Parar áudio";
+    stopVoiceButton.setAttribute("aria-label", "Interromper áudio");
+
+    stopVoiceButton.style.cssText =
+        "padding:10px 14px;border-radius:10px;border:1px solid #7861a8;background:transparent;color:inherit;cursor:pointer;font:inherit;";
+
+    const voiceStatus = document.createElement("span");
+    voiceStatus.setAttribute("role", "status");
+    voiceStatus.setAttribute("aria-live", "polite");
+
+    voiceControls.append(voiceButton, stopVoiceButton, voiceStatus);
+
+    if (tutorForm) {
+        tutorForm.insertAdjacentElement("afterend", voiceControls);
+    }
+
+    // Configurar o reconhecimento de voz em português brasileiro.
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = "pt-BR";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            isListening = true;
+            voiceButton.textContent = "⏹️ Parar de ouvir";
+            voiceButton.setAttribute("aria-label", "Parar reconhecimento de voz");
+            voiceStatus.textContent = "Ouvindo… fale agora.";
+        };
+
+        recognition.onresult = (event) => {
+            const transcript =
+                event.results?.[0]?.[0]?.transcript?.trim();
+
+            if (transcript && tutorInput) {
+                tutorInput.value = transcript;
+                submitRecognizedSpeech = true;
+                voiceStatus.textContent = `Reconhecido: ${transcript}`;
+            }
+        };
+
+        recognition.onerror = (event) => {
+            submitRecognizedSpeech = false;
+
+            const messages = {
+                "not-allowed":
+                    "Permita o acesso ao microfone nas configurações do navegador.",
+                "no-speech":
+                    "Não ouvi nada. Clique no microfone e tente novamente.",
+                "audio-capture":
+                    "Não encontrei um microfone disponível.",
+                "network":
+                    "O reconhecimento de fala teve um erro de rede."
+            };
+
+            voiceStatus.textContent =
+                messages[event.error] ||
+                "Não foi possível reconhecer a fala. Tente novamente.";
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            voiceButton.textContent = "🎙️ Falar";
+            voiceButton.setAttribute(
+                "aria-label",
+                "Iniciar reconhecimento de voz"
+            );
+
+            if (submitRecognizedSpeech && tutorInput?.value.trim()) {
+                submitRecognizedSpeech = false;
+                voiceStatus.textContent = "Enviando sua pergunta ao tutor…";
+
+                if (tutorForm) {
+                    tutorForm.requestSubmit();
+                }
+            } else if (
+                !voiceStatus.textContent.startsWith("Não ") &&
+                !voiceStatus.textContent.startsWith("Permita") &&
+                !voiceStatus.textContent.startsWith("O reconhecimento")
+            ) {
+                voiceStatus.textContent = "Escuta encerrada.";
+            }
+        };
+    } else {
+        voiceButton.disabled = true;
+        voiceButton.title =
+            "Este navegador não oferece reconhecimento de fala compatível.";
+
+        voiceStatus.textContent =
+            "Reconhecimento de fala indisponível. Você ainda pode digitar normalmente.";
+    }
+
+    // Iniciar ou interromper a escuta.
+    voiceButton.addEventListener("click", () => {
+        if (!recognition) return;
+
+        if (isListening) {
+            submitRecognizedSpeech = false;
+            recognition.stop();
+            voiceStatus.textContent = "Parando o microfone…";
+            return;
+        }
+
+        stopSpeaking();
+        submitRecognizedSpeech = false;
+
+        if (tutorInput) {
+            tutorInput.value = "";
+        }
+
+        try {
+            voiceStatus.textContent = "Solicitando acesso ao microfone…";
+            recognition.start();
+        } catch (error) {
+            voiceStatus.textContent =
+                "O microfone já está iniciando. Aguarde e tente novamente.";
+        }
+    });
+
+    // Interromper a fala da resposta.
+    stopVoiceButton.addEventListener("click", () => {
+        stopSpeaking();
+        voiceStatus.textContent = "Áudio interrompido.";
+    });
+
+    // SALVAR HISTÓRICO
     function saveHistory() {
         history.sort((a, b) => b.updatedAt - a.updatedAt);
         history = history.slice(0, 50);
@@ -474,12 +647,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!response.ok) {
                     throw new Error(
-                        data.detail || `O servidor respondeu com erro (${response.status}).`
+                        data.detail ||
+                        `O servidor respondeu com erro (${response.status}).`
                     );
                 }
 
                 const answer =
                     data.resposta || "Não recebi uma resposta desta vez.";
+
+                // Lê a resposta em voz alta usando o navegador.
+                speakAnswer(answer);
 
                 if (typing) {
                     typing.querySelector("p").textContent = answer;
