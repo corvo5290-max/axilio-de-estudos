@@ -1,5 +1,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
+    "use strict";
+
     // =====================================================
     // CONFIGURAÇÃO
     // =====================================================
@@ -31,71 +33,74 @@ document.addEventListener("DOMContentLoaded", () => {
     const tutorStatus = document.getElementById("tutor-status-message");
 
     // =====================================================
-    // VOZ
+    // UTILITÁRIOS
+    // =====================================================
+
+    function makeId() {
+        return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    }
+
+    function validMessages(messages) {
+        if (!Array.isArray(messages)) return [];
+
+        return messages
+            .filter((message) =>
+                message &&
+                ["user", "assistant"].includes(message.role) &&
+                typeof message.content === "string" &&
+                message.content.trim().length > 0
+            )
+            .map((message) => ({
+                role: message.role,
+                content: message.content.trim()
+            }))
+            .slice(-MAX_MESSAGES);
+    }
+
+    function makeTitle(messages) {
+        const firstQuestion = messages.find(
+            (message) => message.role === "user"
+        );
+
+        if (!firstQuestion) return "Nova conversa";
+
+        const title = firstQuestion.content
+            .replace(/\s+/g, " ")
+            .trim();
+
+        return title.length > 32
+            ? `${title.slice(0, 32)}…`
+            : title;
+    }
+
+    function setStatus(message, isError = false) {
+        if (!tutorStatus) return;
+
+        tutorStatus.textContent = message;
+        tutorStatus.classList.toggle("error", isError);
+    }
+
+    // =====================================================
+    // VOZ: SÍNTESE E RECONHECIMENTO
     // =====================================================
 
     const SpeechRecognition =
         window.SpeechRecognition ||
         window.webkitSpeechRecognition;
 
+    const canSpeak = "speechSynthesis" in window &&
+        typeof window.SpeechSynthesisUtterance !== "undefined";
+
     let recognition = null;
     let isListening = false;
+    let recognitionStarting = false;
     let shouldSubmitVoice = false;
     let voiceBaseText = "";
     let finalTranscript = "";
     let currentUtterance = null;
+    let sending = false;
 
-    function speakAnswer(text) {
-        if (!("speechSynthesis" in window) || !text) {
-            voiceHint.textContent =
-                "A leitura em voz alta não está disponível neste navegador.";
-            return;
-        }
-
-        window.speechSynthesis.cancel();
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        currentUtterance = utterance;
-
-        utterance.lang = "pt-BR";
-        utterance.rate = 1;
-        utterance.pitch = 1;
-
-        utterance.onstart = () => {
-            voiceHint.textContent = "Lendo a resposta em voz alta…";
-        };
-
-        utterance.onend = () => {
-            if (currentUtterance === utterance) {
-                currentUtterance = null;
-                voiceHint.textContent = "Leitura concluída.";
-            }
-        };
-
-        utterance.onerror = (event) => {
-            if (currentUtterance === utterance) {
-                currentUtterance = null;
-
-                if (event.error !== "canceled" &&
-                    event.error !== "interrupted") {
-                    voiceHint.textContent =
-                        "Não foi possível reproduzir a voz.";
-                }
-            }
-        };
-
-        window.speechSynthesis.speak(utterance);
-    }
-
-    function stopSpeaking() {
-        if ("speechSynthesis" in window) {
-            window.speechSynthesis.cancel();
-        }
-
-        currentUtterance = null;
-    }
-
-    // Cria os controles sem precisar modificar o HTML.
+    // Os controles são criados por JavaScript.
     const voiceControls = document.createElement("div");
     voiceControls.className = "tutor-voice-controls";
 
@@ -139,7 +144,88 @@ document.addEventListener("DOMContentLoaded", () => {
             "aria-pressed",
             String(isListening)
         );
+
+        voiceButton.disabled =
+            !recognition || sending || recognitionStarting;
+
+        stopVoiceButton.disabled = !canSpeak && !currentUtterance;
     }
+
+    function stopSpeaking() {
+        if (canSpeak) {
+            window.speechSynthesis.cancel();
+        }
+
+        currentUtterance = null;
+
+        if (!isListening && !sending) {
+            voiceHint.textContent = "Áudio interrompido.";
+        }
+
+        updateVoiceButton();
+    }
+
+    function speakAnswer(text) {
+        if (!canSpeak || !text) {
+            voiceHint.textContent =
+                "A leitura em voz alta não está disponível neste navegador.";
+            return;
+        }
+
+        window.speechSynthesis.cancel();
+        currentUtterance = null;
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        currentUtterance = utterance;
+
+        utterance.lang = "pt-BR";
+        utterance.rate = 1;
+        utterance.pitch = 1;
+
+        utterance.onstart = () => {
+            if (currentUtterance === utterance) {
+                voiceHint.textContent =
+                    "Lendo a resposta em voz alta…";
+            }
+        };
+
+        utterance.onend = () => {
+            if (currentUtterance === utterance) {
+                currentUtterance = null;
+                voiceHint.textContent = "Leitura concluída.";
+                updateVoiceButton();
+            }
+        };
+
+        utterance.onerror = (event) => {
+            if (currentUtterance !== utterance) return;
+
+            currentUtterance = null;
+
+            if (
+                event.error !== "canceled" &&
+                event.error !== "interrupted"
+            ) {
+                voiceHint.textContent =
+                    "Não foi possível reproduzir a voz.";
+            }
+
+            updateVoiceButton();
+        };
+
+        window.speechSynthesis.speak(utterance);
+        updateVoiceButton();
+    }
+
+    function resetVoiceTranscript() {
+        finalTranscript = "";
+        voiceBaseText = "";
+        shouldSubmitVoice = false;
+    }
+
+    // =====================================================
+    // RECONHECIMENTO DE FALA
+    // =====================================================
 
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
@@ -150,32 +236,38 @@ document.addEventListener("DOMContentLoaded", () => {
         recognition.maxAlternatives = 1;
 
         recognition.addEventListener("start", () => {
+            recognitionStarting = false;
             isListening = true;
-            updateVoiceButton();
 
+            updateVoiceButton();
             voiceHint.textContent = "Ouvindo… fale agora.";
         });
 
         recognition.addEventListener("result", (event) => {
             let interimTranscript = "";
 
-            for (let i = event.resultIndex;
-                 i < event.results.length;
-                 i++) {
+            for (
+                let i = event.resultIndex;
+                i < event.results.length;
+                i++
+            ) {
                 const result = event.results[i];
-                const transcript = result[0].transcript;
+                const transcript = result[0]?.transcript || "";
 
                 if (result.isFinal) {
-                    finalTranscript += transcript + " ";
+                    // Guarda somente resultados finais novos.
+                    finalTranscript += `${transcript} `;
                 } else {
-                    interimTranscript += transcript;
+                    interimTranscript += `${transcript} `;
                 }
             }
 
-            if (tutorInput) {
-                const recognizedText =
-                    (finalTranscript + interimTranscript).trim();
+            const recognizedText = [
+                finalTranscript.trim(),
+                interimTranscript.trim()
+            ].filter(Boolean).join(" ").trim();
 
+            if (tutorInput) {
                 tutorInput.value = [
                     voiceBaseText,
                     recognizedText
@@ -188,11 +280,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         recognition.addEventListener("error", (event) => {
-            shouldSubmitVoice = false;
+            recognitionStarting = false;
 
             const messages = {
                 "not-allowed":
                     "Permita o acesso ao microfone nas configurações do navegador.",
+                "service-not-allowed":
+                    "O navegador bloqueou o serviço de reconhecimento de fala.",
                 "no-speech":
                     "Não detectei fala. Tente novamente.",
                 "audio-capture":
@@ -206,22 +300,34 @@ document.addEventListener("DOMContentLoaded", () => {
             voiceHint.textContent =
                 messages[event.error] ||
                 `Erro no reconhecimento de fala: ${event.error}.`;
+
+            if (
+                event.error === "not-allowed" ||
+                event.error === "service-not-allowed" ||
+                event.error === "audio-capture"
+            ) {
+                shouldSubmitVoice = false;
+            }
+
+            updateVoiceButton();
         });
 
         recognition.addEventListener("end", () => {
             isListening = false;
+            recognitionStarting = false;
+
             updateVoiceButton();
 
+            const transcript = finalTranscript.trim();
             const shouldSend =
-                shouldSubmitVoice &&
-                Boolean(finalTranscript.trim());
+                shouldSubmitVoice && Boolean(transcript);
 
             shouldSubmitVoice = false;
 
             if (shouldSend && tutorInput && tutorForm) {
                 tutorInput.value = [
                     voiceBaseText,
-                    finalTranscript.trim()
+                    transcript
                 ].filter(Boolean).join(" ").trim();
 
                 if (tutorInput.value.trim()) {
@@ -231,73 +337,73 @@ document.addEventListener("DOMContentLoaded", () => {
                     tutorForm.requestSubmit();
                 }
             } else if (
-                voiceHint.textContent === "Ouvindo… fale agora."
+                voiceHint.textContent === "Ouvindo… fale agora." ||
+                voiceHint.textContent === "Finalizando a gravação…"
             ) {
-                voiceHint.textContent = "Escuta encerrada.";
+                voiceHint.textContent = transcript
+                    ? "Gravação encerrada."
+                    : "Nenhuma fala reconhecida.";
             }
 
-            finalTranscript = "";
-            voiceBaseText = "";
+            resetVoiceTranscript();
+            updateVoiceButton();
         });
     } else {
         voiceButton.disabled = true;
         voiceButton.title =
-            "Seu navegador não oferece reconhecimento de fala.";
+            "Este navegador não oferece reconhecimento de fala.";
 
         voiceHint.textContent =
-            "Reconhecimento de fala indisponível. Tente usar uma versão recente do Chrome.";
+            "Microfone indisponível neste navegador. Você ainda pode digitar e ouvir as respostas, se a síntese de voz estiver disponível.";
     }
 
     voiceButton.addEventListener("click", () => {
         if (!recognition) return;
 
         if (isListening) {
-            // Ao parar manualmente, envia o que foi reconhecido.
             shouldSubmitVoice = Boolean(finalTranscript.trim());
-
             voiceHint.textContent = "Finalizando a gravação…";
 
             try {
                 recognition.stop();
             } catch (error) {
                 isListening = false;
+                recognitionStarting = false;
                 updateVoiceButton();
             }
 
             return;
         }
 
-        if (sending) {
+        if (sending || recognitionStarting) {
             voiceHint.textContent =
                 "Aguarde a resposta atual antes de gravar outra pergunta.";
             return;
         }
 
         stopSpeaking();
-
-        voiceBaseText = "";
-        finalTranscript = "";
-        shouldSubmitVoice = false;
+        resetVoiceTranscript();
 
         if (tutorInput) {
             voiceBaseText = tutorInput.value.trim();
             tutorInput.value = "";
         }
 
+        recognitionStarting = true;
+        updateVoiceButton();
         voiceHint.textContent = "Solicitando acesso ao microfone…";
 
         try {
             recognition.start();
         } catch (error) {
+            recognitionStarting = false;
             voiceHint.textContent =
                 "Não foi possível iniciar a gravação. Tente novamente.";
+            updateVoiceButton();
         }
     });
 
-    stopVoiceButton.addEventListener("click", () => {
-        stopSpeaking();
-        voiceHint.textContent = "Áudio interrompido.";
-    });
+    stopVoiceButton.addEventListener("click", stopSpeaking);
 
     // =====================================================
     // NAVEGAÇÃO
@@ -360,14 +466,27 @@ document.addEventListener("DOMContentLoaded", () => {
         closeMobileMenu();
     }
 
-    if (
-        !window.location.hash ||
-        !document.querySelector(window.location.hash)
-    ) {
+    function isValidHash(hash) {
+        if (!hash || hash === "#") return false;
+
+        try {
+            return Boolean(
+                document.querySelector(decodeURIComponent(hash))
+            );
+        } catch (error) {
+            return false;
+        }
+    }
+
+    if (!isValidHash(window.location.hash)) {
         window.history.replaceState(null, "", "#inicio");
     }
 
     window.addEventListener("hashchange", updateNavigation);
+
+    navLinks.forEach((link) => {
+        link.addEventListener("click", closeMobileMenu);
+    });
 
     if (menuToggle) {
         menuToggle.addEventListener("click", () => {
@@ -387,10 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (mobileOverlay) {
-        mobileOverlay.addEventListener(
-            "click",
-            closeMobileMenu
-        );
+        mobileOverlay.addEventListener("click", closeMobileMenu);
     }
 
     document.addEventListener("keydown", (event) => {
@@ -404,38 +520,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
     // HISTÓRICO DE CONVERSAS
     // =====================================================
-
-    function makeId() {
-        return `${Date.now()}-${Math.random()
-            .toString(36).slice(2, 9)}`;
-    }
-
-    function validMessages(messages) {
-        if (!Array.isArray(messages)) return [];
-
-        return messages.filter((message) =>
-            message &&
-            ["user", "assistant"].includes(message.role) &&
-            typeof message.content === "string" &&
-            message.content.trim().length > 0
-        ).slice(-MAX_MESSAGES);
-    }
-
-    function makeTitle(messages) {
-        const firstQuestion = messages.find(
-            (message) => message.role === "user"
-        );
-
-        if (!firstQuestion) return "Nova conversa";
-
-        const title = firstQuestion.content
-            .replace(/\s+/g, " ")
-            .trim();
-
-        return title.length > 32
-            ? `${title.slice(0, 32)}…`
-            : title;
-    }
 
     function loadHistory() {
         try {
@@ -463,7 +547,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     .slice(0, MAX_CHATS);
             }
 
-            // Migração da versão antiga do histórico.
+            // Migra a conversa única da versão anterior.
             const oldMessages = JSON.parse(
                 localStorage.getItem(OLD_STORAGE_KEY) || "[]"
             );
@@ -498,7 +582,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let history = loadHistory();
     let activeChatId = history[0]?.id || null;
-    let sending = false;
 
     function saveHistory() {
         history.sort((a, b) => b.updatedAt - a.updatedAt);
@@ -515,11 +598,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
-            if (tutorStatus) {
-                tutorStatus.classList.add("error");
-                tutorStatus.textContent =
-                    "Não foi possível salvar as conversas neste navegador.";
-            }
+            setStatus(
+                "Não foi possível salvar as conversas neste navegador.",
+                true
+            );
         }
     }
 
@@ -545,12 +627,11 @@ document.addEventListener("DOMContentLoaded", () => {
         renderHistory();
         renderChat();
 
-        if (tutorStatus) {
-            tutorStatus.classList.remove("error");
-            tutorStatus.textContent = "Nova conversa pronta.";
-        }
+        setStatus("Nova conversa pronta.");
 
         if (tutorInput) tutorInput.focus();
+
+        return chat;
     }
 
     function renderHistory() {
@@ -587,17 +668,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             openButton.addEventListener("click", () => {
-                if (sending) return;
+                if (sending || activeChatId === chat.id) return;
 
                 activeChatId = chat.id;
 
                 renderHistory();
                 renderChat();
-
-                if (tutorStatus) {
-                    tutorStatus.classList.remove("error");
-                    tutorStatus.textContent = "Conversa aberta.";
-                }
+                setStatus("Conversa aberta.");
 
                 if (window.location.hash !== "#tutor") {
                     window.location.hash = "tutor";
@@ -631,15 +708,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     activeChatId = history[0]?.id || null;
                 }
 
+                if (!activeChatId) {
+                    const replacement = {
+                        id: makeId(),
+                        title: "Nova conversa",
+                        createdAt: Date.now(),
+                        updatedAt: Date.now(),
+                        messages: []
+                    };
+
+                    history.unshift(replacement);
+                    activeChatId = replacement.id;
+                }
+
                 saveHistory();
                 renderHistory();
                 renderChat();
-
-                if (tutorStatus) {
-                    tutorStatus.classList.remove("error");
-                    tutorStatus.textContent =
-                        "Histórico atualizado.";
-                }
+                setStatus("Histórico atualizado.");
             });
 
             item.append(openButton, deleteButton);
@@ -675,10 +760,10 @@ document.addEventListener("DOMContentLoaded", () => {
         name.textContent =
             role === "user" ? "Você" : "Tutor EduVexa";
 
-        const text = document.createElement("p");
-        text.textContent = content;
+        const paragraph = document.createElement("p");
+        paragraph.textContent = content;
 
-        bubble.append(name, text);
+        bubble.append(name, paragraph);
         article.append(avatar, bubble);
         chatMessages.append(article);
 
@@ -735,7 +820,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =====================================================
-    // ENVIAR PERGUNTA PARA A API
+    // ENVIO DE PERGUNTAS PARA O BACKEND
     // =====================================================
 
     if (
@@ -766,7 +851,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 content: messageText
             });
 
-            // Mantém o tamanho do histórico limitado.
             chat.messages = chat.messages.slice(-MAX_MESSAGES);
 
             addChatMessage("user", messageText);
@@ -775,11 +859,9 @@ document.addEventListener("DOMContentLoaded", () => {
             sending = true;
             tutorSend.disabled = true;
             tutorInput.disabled = true;
+            updateVoiceButton();
 
-            voiceButton.disabled = true;
-
-            tutorStatus.classList.remove("error");
-            tutorStatus.textContent = "O tutor está pensando…";
+            setStatus("O tutor está pensando…");
             voiceHint.textContent = "Aguardando a resposta…";
 
             saveActiveChat();
@@ -838,37 +920,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 chat.messages = chat.messages.slice(-MAX_MESSAGES);
 
-                tutorStatus.classList.remove("error");
-                tutorStatus.textContent =
-                    "Resposta recebida. Pode perguntar mais!";
+                setStatus("Resposta recebida. Pode perguntar mais!");
 
-                // Lê a resposta usando a voz disponível no navegador.
                 speakAnswer(answer);
 
             } catch (error) {
                 typing?.remove();
 
-                tutorStatus.classList.add("error");
+                const message =
+                    error instanceof TypeError
+                        ? "Não consegui acessar o backend. Verifique sua conexão e tente novamente."
+                        : error.message || "Ocorreu um erro inesperado.";
 
-                if (error instanceof TypeError) {
-                    tutorStatus.textContent =
-                        "Não consegui acessar o backend. Verifique sua conexão e tente novamente.";
-                } else {
-                    tutorStatus.textContent =
-                        error.message || "Ocorreu um erro inesperado.";
-                }
+                setStatus(message, true);
 
                 voiceHint.textContent =
                     "A pergunta não recebeu resposta. Você pode tentar novamente.";
 
             } finally {
                 saveActiveChat();
-                renderHistory();
 
                 sending = false;
                 tutorSend.disabled = false;
                 tutorInput.disabled = false;
-                voiceButton.disabled = !recognition;
+
+                updateVoiceButton();
 
                 tutorInput.focus();
             }
@@ -892,4 +968,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderHistory();
     renderChat();
+    updateVoiceButton();
 });
