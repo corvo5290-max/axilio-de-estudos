@@ -85,7 +85,7 @@ def tutor(request: TutorRequest):
         {
             "role": "system",
             "content": (
-                "Você é o Tutor StudyMind, um tutor educacional que conversa "
+                "Você é o Tutor EduVexa, um tutor educacional que conversa "
                 "em português brasileiro. Explique de forma clara, paciente "
                 "e em etapas, usando exemplos adequados ao nível escolar. "
                 "Ajude o estudante a raciocinar e faça perguntas de "
